@@ -1,0 +1,3 @@
+realsenseから色付きのPointCloud2をPublishするには
+ros2 launch catch_py rs.launch.py
+現状ではトピックの宣言が入っているので，余裕があれば消すこと。
