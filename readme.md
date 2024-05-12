@@ -12,3 +12,7 @@ sudo apt install ros-humble-librealsense2*
 ```
 sudo apt install ros-humble-dynamixel-sdk
 ```
+realsense-rosが依存している
+```
+sudo apt install ros-humble-diagnostic-updater
+```
