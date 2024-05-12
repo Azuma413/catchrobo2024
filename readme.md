@@ -9,3 +9,6 @@ ros2 launch catch_py rs.launch.py
 ```
 sudo apt install ros-humble-librealsense2*
 ```
+```
+sudo apt install ros-humble-dynamixel-sdk
+```
