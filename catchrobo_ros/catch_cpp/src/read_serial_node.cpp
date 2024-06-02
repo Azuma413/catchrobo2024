@@ -12,7 +12,8 @@ using namespace std::chrono_literals;
 // ********************************************************************************************************************
 // 定数の定義
 // ********************************************************************************************************************
-
+const int BAUDRATE = 115200;
+const std::string SERIAL_PORT = "/dev/ttyUSB0";
 // ********************************************************************************************************************
 // クラスの定義 
 // ********************************************************************************************************************
@@ -48,13 +49,13 @@ class ReadSerialNode : public rclcpp::Node{
     }
 
     public:
-    ReadSerialNode() : Node("read_serial_node"), io(), port(io, "/dev/ttyUSB0"){
+    ReadSerialNode() : Node("read_serial_node"), io(), port(io, SERIAL_PORT){
         std::cout << "call ReadSerialNode!" << std::endl;
         auto timer_callback = [this]() -> void{
             io.poll();
         };
 
-        port.set_option(boost::asio::serial_port_base::baud_rate(115200));
+        port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
         start_read();
         pub = this->create_publisher<std_msgs::msg::String>("serial_data", 10);
         timer = this->create_wall_timer(10ms, timer_callback);
