@@ -6,6 +6,7 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
+#include "std_msgs/msg/string.hpp"
 
 using namespace std::chrono_literals;
 // ********************************************************************************************************************
@@ -18,6 +19,7 @@ using namespace std::chrono_literals;
 class ReadSerialNode : public rclcpp::Node{
     private:
     rclcpp::TimerBase::SharedPtr timer;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub;
     boost::asio::io_service io;
     boost::asio::serial_port port;
     boost::asio::streambuf buffer;
@@ -37,6 +39,9 @@ class ReadSerialNode : public rclcpp::Node{
             std::getline(is, line);
             if(!line.empty()){
                 std::cout << line << std::endl;
+                auto msg = std_msgs::msg::String();
+                msg.data = line;
+                pub->publish(msg);
             }
         }
         start_read();
@@ -51,6 +56,7 @@ class ReadSerialNode : public rclcpp::Node{
 
         port.set_option(boost::asio::serial_port_base::baud_rate(115200));
         start_read();
+        pub = this->create_publisher<std_msgs::msg::String>("serial_data", 10);
         timer = this->create_wall_timer(10ms, timer_callback);
     }
 
