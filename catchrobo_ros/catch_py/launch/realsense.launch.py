@@ -41,8 +41,8 @@ local_parameters = [{'name': 'camera_name',                  'default': 'camera'
                     {'name': 'enable_depth',                 'default': 'true', 'description': 'enable depth stream'},
                     {'name': 'pointcloud.enable',            'default': 'true', 'description': 'enable pointcloud'},
                     {'name': 'pointcloud.pointcloud_qos',    'default': 'SENSOR_DATA', 'description': ''},
-                    {'name': 'rgb_camera.profile',           'default': '434,240,5', 'description': 'color image width'},
-                    {'name': 'depth_module.profile',         'default': '480,270,5', 'description': 'depth module profile'},
+                    {'name': 'rgb_camera.profile',           'default': '640,480,5', 'description': 'color image width'},
+                    {'name': 'depth_module.profile',         'default': '640,480,5', 'description': 'depth module profile'},
                    ]
 """
 depth
