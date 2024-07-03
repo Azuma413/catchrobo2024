@@ -41,8 +41,18 @@ local_parameters = [{'name': 'camera_name',                  'default': 'camera'
                     {'name': 'enable_depth',                 'default': 'true', 'description': 'enable depth stream'},
                     {'name': 'pointcloud.enable',            'default': 'true', 'description': 'enable pointcloud'},
                     {'name': 'pointcloud.pointcloud_qos',    'default': 'SENSOR_DATA', 'description': ''},
-                    {'name': 'rgb_camera.profile',           'default': '640,480,5', 'description': 'color image width'},
-                    {'name': 'depth_module.profile',         'default': '640,480,5', 'description': 'depth module profile'},
+                    {'name': 'rgb_camera.profile',           'default': '640,480,15', 'description': 'color image width'},
+                    # {'name': 'rgb_camera.profile',           'default': '1280,720,5', 'description': 'color image width'},
+                    {'name': 'depth_module.profile',         'default': '640,480,15', 'description': 'depth module profile'},
+                    # {'name': 'depth_module.profile',         'default': '1280,720,5', 'description': 'depth module profile'},
+                    {'name': 'publish_tf',                   'default': 'false', 'description': '[bool] enable/disable publishing static & dynamic TF'},
+                    {'name': 'pointcloud.allow_no_texture_points', 'default': 'true', 'description': "''"},
+                    {'name': 'decimation_filter.enable',     'default': 'true', 'description': 'enable_decimation_filter'},
+                    {'name': 'spatial_filter.enable',        'default': 'false', 'description': 'enable_spatial_filter'},
+                    {'name': 'temporal_filter.enable',       'default': 'true', 'description': 'enable_temporal_filter'},
+                    {'name': 'disparity_filter.enable',      'default': 'false', 'description': 'enable_disparity_filter'},
+                    {'name': 'hole_filling_filter.enable',   'default': 'false', 'description': 'enable_hole_filling_filter'},
+                    {'name': 'align_depth.enable',           'default': 'false', 'description': 'enable align depth filter'},
                    ]
 """
 depth
@@ -102,15 +112,15 @@ def generate_launch_description():
         OpaqueFunction(function=rs_launch.launch_setup,
                 kwargs = {'params' : set_configurable_parameters(params)}
         ),
-        # launch_ros.actions.Node(
-        #     package='rviz2',
-        #     namespace='',
-        #     executable='rviz2',
-        #     name='rviz2',
-        #     arguments=['-d', [ThisLaunchFileDir(), '/rviz/urdf_pointcloud.rviz']],
-        #     output='screen',
-        #     parameters=[{'use_sim_time': False}]
-        # ),
+        launch_ros.actions.Node(
+            package='rviz2',
+            namespace='',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', '/home/kikaiken2/Documents/rviz.rviz'],
+            output='screen',
+            parameters=[{'use_sim_time': False}]
+        ),
         launch_ros.actions.Node(
             name='model_node',
             package='robot_state_publisher',
