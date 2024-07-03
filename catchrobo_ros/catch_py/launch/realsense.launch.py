@@ -40,8 +40,38 @@ local_parameters = [{'name': 'camera_name',                  'default': 'camera'
                     {'name': 'enable_color',                 'default': 'true', 'description': 'enable color stream'},
                     {'name': 'enable_depth',                 'default': 'true', 'description': 'enable depth stream'},
                     {'name': 'pointcloud.enable',            'default': 'true', 'description': 'enable pointcloud'},
+                    {'name': 'pointcloud.pointcloud_qos',    'default': 'SENSOR_DATA', 'description': ''},
+                    {'name': 'rgb_camera.profile',           'default': '434,240,5', 'description': 'color image width'},
+                    {'name': 'depth_module.profile',         'default': '480,270,5', 'description': 'depth module profile'},
                    ]
+"""
+depth
+1280x720x5
+256x144x90
+480x270x15
+480x270x30
+480x270x5
+480x270x60
+640x360x30
+640x480x15
+640x480x30
+640x480x5
+848x480x10
+848x480x5
 
+rgb
+1280x720x10
+1280x720x15
+1280x720x5
+1280x800x8
+424x240x15
+424x240x30
+424x240x5
+424x240x60
+640x480x15
+640x480x30
+640x480x5
+"""
 def to_urdf(xacro_path, parameters=None):
     """Convert the given xacro file to URDF file.
     * xacro_path -- the path to the xacro file
