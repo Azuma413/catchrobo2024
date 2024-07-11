@@ -33,6 +33,7 @@ const std::vector<FingerConfig> finger_config = {
     {7, 0.0, 2*M_PI, 0.0, false},
     {8, 0.0, 2*M_PI, 0.0, false},
     {9, 0.0, 2*M_PI, 0.0, false},
+    {10, 0.0, 2*M_PI, 0.0, false},
     {11, 0.0, 2*M_PI, 0.0, false},
     {12, 0.0, 2*M_PI, 0.0, false},
     {13, 0.0, 2*M_PI, 0.0, false},
