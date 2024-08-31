@@ -42,7 +42,7 @@ const std::vector<FingerConfig> finger_config = {
     {16, 0.0, 2*M_PI, 0.0, false}
 };
 const char* DEVICE = "/dev/ttyUSB0";
-const uint32_t BAUDRATE = 1000000;
+const uint32_t BAUDRATE = 115200; //1000000;
 // ********************************************************************************************************************
 // クラスの定義 
 // ********************************************************************************************************************
@@ -74,6 +74,8 @@ class FingerControlNode : public rclcpp::Node{
                 std::cout << "検出されたモデル: XM430_W350" << std::endl;
             }else if(model_number == XL_320){
                 std::cout << "検出されたモデル: XL_320" << std::endl;
+            }else if(model_number == XL430_W250){
+                std::cout << "検出されたモデル: XL_430" << std::endl;
             }else{
                 std::cout << "検出されたモデル番号: " << model_number << std::endl;
             }
