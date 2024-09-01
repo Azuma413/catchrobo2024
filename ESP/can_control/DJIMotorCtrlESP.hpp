@@ -582,10 +582,10 @@ void add_user_can_func(int addr,std::function<void(twai_message_t* can_message)>
 void feedback_update_task(void* n){
     twai_message_t rx_message;
     while (1){
-        Serial.println("feedback_update_task 0");
+        // Serial.println("feedback_update_task 0");
         //接收CAN上数据
         ESP_ERROR_CHECK(twai_receive(&rx_message, portMAX_DELAY));
-        Serial.println("feedback_update_task 1");
+        // Serial.println("feedback_update_task 1");
         //如果是电机数据就更新到对应的对象
         if(rx_message.identifier>=0x201 && rx_message.identifier<=0x20B){
             motors[rx_message.identifier-0x201]->update_data(rx_message);
@@ -593,7 +593,7 @@ void feedback_update_task(void* n){
         }else if(func_map.find(rx_message.identifier)!=func_map.end()){
             func_map[rx_message.identifier](&rx_message);
         }
-        Serial.println("feedback_update_task 2");
+        // Serial.println("feedback_update_task 2");
     }
 }
 
@@ -604,6 +604,7 @@ void update_current_task(void* p){
     //电流控制频率
     int frc=*(int*) p;
     while(1){
+        // Serial.println("update task");
         //如果启用了(C620 C610)1-4号任意一个电机就更新电流
         if(motor_201.enable || motor_202.enable || motor_203.enable || motor_204.enable){
             twai_message_t tx_msg;
