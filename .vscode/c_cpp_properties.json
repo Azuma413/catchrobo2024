@@ -33,7 +33,8 @@
                 "/usr/include/**",
                 "${workspaceFolder}/**",
                 "C:/Users/hirek/AppData/Local/Arduino15/packages/esp32/**",
-                "C:/Users/hirek/AppData/Local/Arduino15/packages/esp32/tools/esp32-arduino-libs/idf-release_v5.1-dc859c1e67/esp32/include/freertos/FreeRTOS-Kernel/include/freertos"
+                "C:/Users/hirek/AppData/Local/Arduino15/packages/esp32/tools/esp32-arduino-libs/idf-release_v5.1-dc859c1e67/esp32/include/freertos/FreeRTOS-Kernel/include/freertos",
+                "${workspaceFolder}/ESP/cyber_control/src"
             ],
             "name": "ROS",
             "intelliSenseMode": "gcc-x64",
