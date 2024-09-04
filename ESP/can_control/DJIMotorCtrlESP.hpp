@@ -586,6 +586,8 @@ void feedback_update_task(void* n){
             motors[rx_message.identifier-0x201]->update_data(rx_message);
         }else if(func_map.find(rx_message.identifier)!=func_map.end()){
             func_map[rx_message.identifier](&rx_message);
+        }else{
+            Serial.printf("Unknown CAN ID:%d\n",rx_message.identifier);
         }
     }
 }

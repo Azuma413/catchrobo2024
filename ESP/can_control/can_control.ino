@@ -17,8 +17,8 @@
 const uint8_t RX_PIN = 5;
 const uint8_t TX_PIN = 4;
 
-const int master_id = 0;
-const int cyber_1_id = 1;
+const uint8_t master_id = 0;
+const uint8_t cyber_1_id = 1;
 const int m3508_1_id = 5;
 const int gm6020_1_id = 3;
 //                          kp,     ki,     kd,     dead_zone, max_value
@@ -30,15 +30,23 @@ pid_param gm6020_1_location(1.0,    0.1,    0.03,   5,      350);
 M3508_P19 m3508_1(m3508_1_id, m3508_1_location, m3508_1_speed);
 GM6020 gm6020_1(gm6020_1_id, gm6020_1_location, gm6020_1_speed);
 // Cybergear settings
-CybergearDriver driver1 = CybergearDriver((uint8_t)master_id, (uint8_t)cyber_1_id);
+CybergearDriver driver1 = CybergearDriver(master_id, cyber_1_id);
 MotorStatus motor_status1;
 CybergearCanInterface interface1;
+
+int calc_identifier(uint8_t master_id, uint8_t motor_id){
+    unsigned long identifier = (master_id << 8) | motor_id;
+    identifier |= 0x12000000;
+    Serial.println(identifier);
+    return identifier;
+}
+
 void setup() {
     Serial.begin(115200);
     while(!Serial);
     adc_setup();
     can_init(RX_PIN, TX_PIN, 1000);
-    add_user_can_func(((uint8_t)cyber_1_id << 8) | (uint8_t)master_id, std::bind(&CybergearCanInterface::on_receive, &interface1, std::placeholders::_1));
+    add_user_can_func(calc_identifier(master_id, cyber_1_id), std::bind(&CybergearCanInterface::on_receive, &interface1, std::placeholders::_1));
     m3508_1.setup();
     gm6020_1.setup();
     driver1.init(&interface1);
@@ -59,16 +67,16 @@ void loop() {
     // gm6020_1.set_speed(1.0);
     gm6020_1.set_angle(target_angle);
     // Serial.println(target_angle);
-    Serial.print(target_angle);
-    Serial.print(",");
+    // Serial.print(target_angle);
+    // Serial.print(",");
     // float angle = gm6020_1.get_angle();
     // Serial.println(angle);
 
-    driver1.set_position_ref(target_angle);
+    driver1.set_position_ref(target_angle*M_PI/180);
     if (driver1.process_packet()) { // CyberGearのデータを取得
         motor_status1 = driver1.get_motor_status();
     }
     float position = motor_status1.position; // CyberGearの位置情報 rad
-    Serial.println(position*180/M_PI);
+    // Serial.println(position*180/M_PI);
     delay(10);
 }
