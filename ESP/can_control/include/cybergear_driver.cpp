@@ -208,39 +208,6 @@ bool CybergearDriver::process_packet()
   return check_update;
 }
 
-bool CybergearDriver::update_motor_status(unsigned long id, const uint8_t * data, unsigned long len)
-{
-  CG_DEBUG_FUNC
-  uint8_t receive_can_id = id & 0xff;
-  if (receive_can_id != master_can_id_) {
-    return false;
-  }
-
-  uint8_t motor_can_id = (id & 0xff00) >> 8;
-  if (motor_can_id != target_can_id_) {
-    return false;
-  }
-
-  // check packet type
-  uint8_t packet_type = (id & 0x3F000000) >> 24;
-  if (packet_type == CMD_RESPONSE) {
-    process_motor_packet(data, len);
-
-  } else if (packet_type == CMD_RAM_READ) {
-    process_read_parameter_packet(data, len);
-
-  } else if (packet_type == CMD_GET_MOTOR_FAIL) {
-    // NOT IMPLEMENTED
-
-  } else {
-    CG_DEBUG_PRINTF("invalid command response [0x%x]\n", packet_type);
-    print_can_packet(id, data, len);
-    return false;
-  }
-
-  return true;
-}
-
 void CybergearDriver::write_float_data(
   uint8_t can_id, uint16_t addr, float value, float min, float max)
 {
@@ -291,25 +258,30 @@ bool CybergearDriver::receive_motor_data(MotorStatus & mot)
     return false;
   }
 
-  // if id is not mine
+  CG_DEBUG_FUNC
   uint8_t receive_can_id = id & 0xff;
   if (receive_can_id != master_can_id_) {
-    CG_DEBUG_PRINTF(
-      "Invalid master can id. Expected=[0x%02x] Actual=[0x%02x] Raw=[%x]\n", master_can_id_,
-      receive_can_id, id);
     return false;
   }
 
   uint8_t motor_can_id = (id & 0xff00) >> 8;
   if (motor_can_id != target_can_id_) {
-    CG_DEBUG_PRINTF(
-      "Invalid target can id. Expected=[0x%02x] Actual=[0x%02x] Raw=[%x]\n", target_can_id_,
-      motor_can_id, id);
     return false;
   }
 
-  // parse packet --------------
-  return update_motor_status(id, receive_buffer_, len);
+  // check packet type
+  uint8_t packet_type = (id & 0x3F000000) >> 24;
+  if (packet_type == CMD_RESPONSE) {
+    process_motor_packet(receive_buffer_, len);
+  } else if (packet_type == CMD_RAM_READ) {
+    process_read_parameter_packet(receive_buffer_, len);
+  } else if (packet_type == CMD_GET_MOTOR_FAIL) {
+  } else {
+    CG_DEBUG_PRINTF("invalid command response [0x%x]\n", packet_type);
+    print_can_packet(id, receive_buffer_, len);
+    return false;
+  }
+  return true;
 }
 
 void CybergearDriver::process_motor_packet(const uint8_t * data, unsigned long len)

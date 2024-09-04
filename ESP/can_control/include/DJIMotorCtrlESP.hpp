@@ -472,7 +472,6 @@ class GM6020:public MOTOR{
                 delta+=delta>0?-360:360;
             }
             set_location(data->angle+delta*8192.f/360.f);
-            
         }
         //设置角度偏移量，范围：-180_180，单位：度
         void set_angle_offset(float offset){
@@ -578,7 +577,7 @@ void add_user_can_func(int addr,std::function<void(twai_message_t* can_message)>
     func_map[addr]=func;
 };
 
-//接收CAN总线上的数据的任务函数
+//接收CAN总线上的数据的任务函数_
 void feedback_update_task(void* n){
     twai_message_t rx_message;
     while (1){
@@ -590,7 +589,6 @@ void feedback_update_task(void* n){
         }
     }
 }
-
 
 
 //更新电流控制任务

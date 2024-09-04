@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include "cybergear_driver.hh"
-#include "cybergear_can_interface_esp32.hh"
+#include "cybergear_can_interface.hpp"
 
 #define INC_POSITION  20.0
 #define INC_VELOCITY  0.4
@@ -14,7 +14,7 @@ uint8_t MOT_CAN_ID = 0x7F;
 // init cybergeardriver
 CybergearDriver driver = CybergearDriver(MASTER_CAN_ID, MOT_CAN_ID);
 MotorStatus motor_status;
-CybergearCanInterfaceEsp32 interface;
+CybergearCanInterface interface;
 uint8_t mode = MODE_POSITION;
 // uint8_t mode = MODE_SPEED;
 // uint8_t mode = MODE_CURRENT;
