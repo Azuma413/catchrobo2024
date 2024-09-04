@@ -95,7 +95,7 @@ class XL320Node : public rclcpp::Node{
         
         auto topic_callback = [this](const Float32MultiArray::SharedPtr msg) -> void{
             for (int i = 0; i < msg->data.size(); i++){
-                target_position[i] = msg->data[i];
+                target_position[i] = msg->data[i]/180.0*M_PI;
             }
         };
 

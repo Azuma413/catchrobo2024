@@ -41,7 +41,11 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "ios": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "utility": "cpp",
+        "thread": "cpp",
+        "xlocale": "cpp",
+        "ostream": "cpp"
     },
     "cmake.sourceDirectory": "E:/SourceCode/Github/catchrobo2024/catchrobo_ros/catch_cpp"
 }

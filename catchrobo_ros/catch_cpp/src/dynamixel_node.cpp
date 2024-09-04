@@ -41,8 +41,10 @@ const FingerConfig wrist_config = {9, 0.0, 2*M_PI, 0.0, false};
 const char* DEVICE = "/dev/ttyUSB0";
 const uint32_t BAUDRATE = 115200;
 const int32_t current = 10;
+const float load_limit = 70.0; // %
+const float delta_rad = 0.1;
 // ********************************************************************************************************************
-// クラスの定義 
+// クラスの定義
 // ********************************************************************************************************************
 class DynamixelNode : public rclcpp::Node{
     private:
@@ -107,13 +109,28 @@ class DynamixelNode : public rclcpp::Node{
 
         auto timer_callback = [this]() -> void{
             for (int i = 0; i < finger_config.size(); i++){
+                // モータにかかっている負荷を取得
+                int32_t load;
+                dxl_wb.itemRead(finger_config[i].id, "Present_Load", &load, &log);
+                float load_percent = dxl_wb.convertValue2Load(load);
+                if (load_percent > load_limit){
+                    continue; // 負荷が設定値を超えている場合は動作しない
+                }
                 float target = target_position[i];
                 if (finger_config[i].reverse){
                     target = -target;
                 }
                 target += finger_config[i].init;
                 target = std::max(finger_config[i].min, std::min(finger_config[i].max, target));
-                dxl_wb.goalPosition(finger_config[i].id, target, &log);
+                float present_position;
+                dxl_wb.getRadian(finger_config[i].id, &present_position);
+                if (target - present_position > delta_rad){
+                    dxl_wb.goalPosition(finger_config[i].id, present_position + delta_rad, &log);
+                }else if (target - present_position < -delta_rad){
+                    dxl_wb.goalPosition(finger_config[i].id, present_position - delta_rad, &log);
+                }else{
+                    dxl_wb.goalPosition(finger_config[i].id, target, &log);
+                }
             }
             float target = wrist_target_pos;
             if (wrist_config.reverse){
@@ -126,12 +143,12 @@ class DynamixelNode : public rclcpp::Node{
         
         auto topic_callback = [this](const Float32MultiArray::SharedPtr msg) -> void{
             for (int i = 0; i < msg->data.size(); i++){
-                target_position[i] = msg->data[i];
+                target_position[i] = msg->data[i]/180.0*M_PI;
             }
         };
 
         auto wrist_deg_callback = [this](const Float32::SharedPtr msg) -> void{
-            wrist_target_pos = msg->data;
+            wrist_target_pos = msg->data/180.0*M_PI;
         };
 
         int8_t qos_depth = 10;
