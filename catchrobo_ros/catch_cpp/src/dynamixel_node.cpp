@@ -28,13 +28,13 @@ struct FingerConfig{
 // 定数等の定義
 // ********************************************************************************************************************
 const std::vector<FingerConfig> finger_config = {
-    {1, 0.0, 2*M_PI, 0.0, false},
-    {2, 0.0, 2*M_PI, 0.0, false},
-    {3, 0.0, 2*M_PI, 0.0, false},
-    {4, 0.0, 2*M_PI, 0.0, false},
-    {5, 0.0, 2*M_PI, 0.0, false},
-    {6, 0.0, 2*M_PI, 0.0, false},
-    {7, 0.0, 2*M_PI, 0.0, false},
+    // {1, 0.0, 2*M_PI, 0.0, false},
+    // {2, 0.0, 2*M_PI, 0.0, false},
+    // {3, 0.0, 2*M_PI, 0.0, false},
+    // {4, 0.0, 2*M_PI, 0.0, false},
+    // {5, 0.0, 2*M_PI, 0.0, false},
+    // {6, 0.0, 2*M_PI, 0.0, false},
+    // {7, 0.0, 2*M_PI, 0.0, false},
     {8, 0.0, 2*M_PI, 0.0, false}
 };
 const FingerConfig wrist_config = {9, 0.0, 2*M_PI, 0.0, false};
@@ -112,8 +112,11 @@ class DynamixelNode : public rclcpp::Node{
                 // モータにかかっている負荷を取得
                 int32_t load;
                 dxl_wb.itemRead(finger_config[i].id, "Present_Load", &load, &log);
+                // std::cout << log << std::endl;
                 float load_percent = dxl_wb.convertValue2Load(load);
                 if (load_percent > load_limit){
+                    
+                    std::cout << "over limit" << std::endl;
                     continue; // 負荷が設定値を超えている場合は動作しない
                 }
                 float target = target_position[i];
@@ -122,23 +125,15 @@ class DynamixelNode : public rclcpp::Node{
                 }
                 target += finger_config[i].init;
                 target = std::max(finger_config[i].min, std::min(finger_config[i].max, target));
-                float present_position;
-                dxl_wb.getRadian(finger_config[i].id, &present_position);
-                if (target - present_position > delta_rad){
-                    dxl_wb.goalPosition(finger_config[i].id, present_position + delta_rad, &log);
-                }else if (target - present_position < -delta_rad){
-                    dxl_wb.goalPosition(finger_config[i].id, present_position - delta_rad, &log);
-                }else{
-                    dxl_wb.goalPosition(finger_config[i].id, target, &log);
-                }
+                dxl_wb.goalPosition(finger_config[i].id, target, &log);
             }
-            float target = wrist_target_pos;
+            float wrist_target = wrist_target_pos;
             if (wrist_config.reverse){
-                target = -target;
+                wrist_target = -wrist_target;
             }
-            target += wrist_config.init;
-            target = std::max(wrist_config.min, std::min(wrist_config.max, target));
-            dxl_wb.goalPosition(wrist_config.id, target, &log); 
+            wrist_target += wrist_config.init;
+            wrist_target = std::max(wrist_config.min, std::min(wrist_config.max, wrist_target));
+            dxl_wb.goalPosition(wrist_config.id, wrist_target, &log); 
         };
         
         auto topic_callback = [this](const Float32MultiArray::SharedPtr msg) -> void{
@@ -153,12 +148,12 @@ class DynamixelNode : public rclcpp::Node{
 
         int8_t qos_depth = 10;
         const auto QOS_RKL10V = rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
-        subscriber =this->create_subscription<Float32MultiArray>("x430_deg", QOS_RKL10V, topic_callback);
+        subscriber =this->create_subscription<Float32MultiArray>("xl430_deg", QOS_RKL10V, topic_callback);
         wrist_deg_sub = this->create_subscription<Float32>("wrist_deg", QOS_RKL10V, wrist_deg_callback);
         for (auto config : finger_config){
             target_position.push_back(config.init);
         }
-        timer = this->create_wall_timer(5ms, timer_callback);
+        timer = this->create_wall_timer(10ms, timer_callback);
     }
 
     ~DynamixelNode(){

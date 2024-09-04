@@ -101,11 +101,11 @@ class XL320Node : public rclcpp::Node{
 
         int8_t qos_depth = 10;
         const auto QOS_RKL10V = rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
-        subscriber =this->create_subscription<Float32MultiArray>("x320_deg", QOS_RKL10V, topic_callback);
+        subscriber =this->create_subscription<Float32MultiArray>("xl320_deg", QOS_RKL10V, topic_callback);
         for (auto config : finger_config){
             target_position.push_back(config.init);
         }
-        timer = this->create_wall_timer(5ms, timer_callback);
+        timer = this->create_wall_timer(1ms, timer_callback);
     }
 
     ~XL320Node(){
