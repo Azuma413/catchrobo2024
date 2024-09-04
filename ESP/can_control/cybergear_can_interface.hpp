@@ -1,14 +1,11 @@
-#ifndef CYBERGEAR_CAN_INTERFACE_HH
-#define CYBERGEAR_CAN_INTERFACE_HH
+#ifndef CYBERGEAR_CAN_INTERFACE_HPP
+#define CYBERGEAR_CAN_INTERFACE_HPP
 
 #include <inttypes.h>
-#include "cybergear_can_interface.hh"
 #include <cstdint>
 #include <cstring>
 #include "cybergear_driver_utils.hh"
 #include "driver/twai.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
 
 class CybergearCanInterface
 {
@@ -52,4 +49,4 @@ private:
   twai_message_t receive_msg;
 };
 
-#endif  // CYBERGEAR_CAN_INTERFACE_HH
+#endif  // CYBERGEAR_CAN_INTERFACE_HPP

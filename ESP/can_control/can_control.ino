@@ -1,7 +1,7 @@
-#include "include/DJIMotorCtrlESP.hpp"
-#include "include/adc_read.hpp"
-#include "include/cybergear_can_interface.hpp"
-#include "include/cybergear_driver.hh"
+#include "DJIMotorCtrlESP.hpp"
+#include "adc_read.hpp"
+#include "cybergear_can_interface.hpp"
+#include "cybergear_driver.hh"
 
 // PIN
 // CAN RX 4
@@ -19,8 +19,8 @@ const uint8_t TX_PIN = 4;
 
 const int master_id = 0;
 const int cyber_1_id = 1;
-const int m3508_1_id = 3;
-const int gm6020_1_id = 4;
+const int m3508_1_id = 5;
+const int gm6020_1_id = 3;
 //                          kp,     ki,     kd,     dead_zone, max_value
 pid_param m3508_1_speed(    5,      1,      0.01,   1,      10000);
 pid_param m3508_1_location( 0.1,    0.1,    0,      2000,   3000);
@@ -36,9 +36,9 @@ CybergearCanInterface interface1;
 void setup() {
     Serial.begin(115200);
     while(!Serial);
-	adc_setup();
+    adc_setup();
     can_init(RX_PIN, TX_PIN, 1000);
-    add_user_can_func(((uint8_t)cyber_1_id << 8) | (uint8_t)master_id, interface1.on_receive);
+    add_user_can_func(((uint8_t)cyber_1_id << 8) | (uint8_t)master_id, std::bind(&CybergearCanInterface::on_receive, &interface1, std::placeholders::_1));
     m3508_1.setup();
     gm6020_1.setup();
     driver1.init(&interface1);
@@ -56,16 +56,19 @@ void loop() {
     float degree = get_adc_deg();
     target_angle = target_angle * (1.0 - rate) + degree * rate;
     m3508_1.set_location((int64_t)target_angle*location_deg_rate);
+    // gm6020_1.set_speed(1.0);
     gm6020_1.set_angle(target_angle);
-    Serial.println(target_angle);
-    // Serial.print(target_angle);
-    // Serial.print(",");
-    float angle = gm6020_1.get_angle();
+    // Serial.println(target_angle);
+    Serial.print(target_angle);
+    Serial.print(",");
+    // float angle = gm6020_1.get_angle();
     // Serial.println(angle);
 
     driver1.set_position_ref(target_angle);
-    if ( driver.process_packet() ) { // CyberGearのデータを取得
+    if (driver1.process_packet()) { // CyberGearのデータを取得
         motor_status1 = driver1.get_motor_status();
-    } // ex. float position = motor_status1.position; // CyberGearの位置情報 rad
+    }
+    float position = motor_status1.position; // CyberGearの位置情報 rad
+    Serial.println(position*180/M_PI);
     delay(10);
 }

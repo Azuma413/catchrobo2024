@@ -3,6 +3,7 @@
 #include <vector>
 #include "cybergear_driver_defs.hh"
 #include "cybergear_driver_utils.hh"
+#include "cybergear_can_interface.hpp"
 
 CybergearDriver::CybergearDriver()
 : can_(NULL), master_can_id_(0), target_can_id_(0), run_mode_(MODE_MOTION), send_count_(0)

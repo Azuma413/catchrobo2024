@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "cybergear_can_interface.hh"
+#include "cybergear_can_interface.hpp"
 #include "cybergear_driver.hh"
 
 /**

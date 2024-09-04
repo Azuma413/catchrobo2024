@@ -1,7 +1,7 @@
 #ifndef CYBER_GEAR_DRIVER_H
 #define CYBER_GEAR_DRIVER_H
 
-#include "cybergear_can_interface.hh"
+#include "cybergear_can_interface.hpp"
 #include "cybergear_driver_defs.hh"
 
 /**
