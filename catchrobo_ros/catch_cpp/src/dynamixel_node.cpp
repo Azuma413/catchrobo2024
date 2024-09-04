@@ -35,14 +35,13 @@ const std::vector<FingerConfig> finger_config = {
     // {5, 0.0, 2*M_PI, 0.0, false},
     // {6, 0.0, 2*M_PI, 0.0, false},
     // {7, 0.0, 2*M_PI, 0.0, false},
-    {8, 0.0, 2*M_PI, 0.0, false}
+    {8, 0.0, 2*M_PI, 0.0, false},
+    {9, 0.0, 2*M_PI, 0.0, false},
 };
 const FingerConfig wrist_config = {9, 0.0, 2*M_PI, 0.0, false};
 const char* DEVICE = "/dev/ttyUSB0";
 const uint32_t BAUDRATE = 115200;
-const int32_t current = 10;
 const float load_limit = 70.0; // %
-const float delta_rad = 0.1;
 // ********************************************************************************************************************
 // クラスの定義
 // ********************************************************************************************************************
@@ -112,10 +111,11 @@ class DynamixelNode : public rclcpp::Node{
                 // モータにかかっている負荷を取得
                 int32_t load;
                 dxl_wb.itemRead(finger_config[i].id, "Present_Load", &load, &log);
-                // std::cout << log << std::endl;
                 float load_percent = dxl_wb.convertValue2Load(load);
                 if (load_percent > load_limit){
-                    
+                    float present_position;
+                    dxl_wb.getRadian(finger_config[i].id, &present_position, &log);
+                    target_position[i] = present_position;
                     std::cout << "over limit" << std::endl;
                     continue; // 負荷が設定値を超えている場合は動作しない
                 }
