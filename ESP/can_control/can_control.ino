@@ -29,7 +29,6 @@ CybergearCanInterface interface;
 CybergearSoftwareConfig config1(cyber_ids[0], CW, 30, 27, 12, 4.0*M_PI, -4.0*M_PI, CW, 0);
 CybergearSoftwareConfig config2(cyber_ids[1], CW, 30, 27, 12, 4.0*M_PI, -4.0*M_PI, CW, 0);
 std::vector<CybergearSoftwareConfig> sw_configs = {config1, config2};
-std::vector<CybergearHardwareConfig> hw_configs;
 std::vector<MotorStatus> motor_status;
 
 int calc_identifier(uint8_t master_id, uint8_t motor_id){
@@ -39,23 +38,26 @@ int calc_identifier(uint8_t master_id, uint8_t motor_id){
     return identifier;
 }
 
+bool calib_motors(){
+    
+    for(auto id : cyber_ids){
+        controller.set_mech_position_to_zero(id);
+    }
+    return true;
+}
+
 void setup() {
     Serial.begin(115200);
     while(!Serial);
     adc_setup();
     can_init(RX_PIN, TX_PIN, 1000);
     controller.init(cyber_ids, sw_configs, MODE_POSITION, &interface, 0);
-    for(int i = 0; i < cyber_ids.size(); i++){
-        hw_configs[i].id = cyber_ids[i];
-        hw_configs[i].current_kp = 0.025;
-        hw_configs[i].current_ki = 0.0258;
-        hw_configs[i].current_filter_gain = 0.1;
+    for(auto id : cyber_ids){
+        controller.set_position_control_gain(id, 30);
+        controller.set_velocity_control_gain(id, 1.0, 0.002);
+        controller.set_current_control_param(id, 0.125, 0.0158, 0.1);
+        add_user_can_func(calc_identifier(master_id, id), std::bind(&CybergearCanInterface::on_receive, &interface, std::placeholders::_1));
     }
-    controller.set_motor_config(hw_configs);
-    // controller.set_position_control_gain(cyber_1_id, 0.1);
-    // controller.set_position_control_gain(cyber_2_id, 0.1);
-    add_user_can_func(calc_identifier(master_id, cyber_ids[0]), std::bind(&CybergearCanInterface::on_receive, &interface, std::placeholders::_1));
-    add_user_can_func(calc_identifier(master_id, cyber_ids[1]), std::bind(&CybergearCanInterface::on_receive, &interface, std::placeholders::_1));
     m3508_1.setup();
     gm6020_1.setup();
     gm6020_2.setup();
