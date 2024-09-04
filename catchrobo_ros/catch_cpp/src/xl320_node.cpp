@@ -39,7 +39,7 @@ const std::vector<FingerConfig> finger_config = {
 };
 const char* DEVICE = "/dev/ttyUSB0";
 const uint32_t BAUDRATE = 1000000;
-const float load_limit = 70.0; // %
+const float load_limit = 100.0; // %
 // ********************************************************************************************************************
 // クラスの定義 
 // ********************************************************************************************************************
@@ -91,7 +91,7 @@ class XL320Node : public rclcpp::Node{
                     float present_position;
                     dxl_wb.getRadian(finger_config[i].id, &present_position, &log);
                     target_position[i] = present_position;
-                    std::cout << "over limit" << std::endl;
+                    std::cout << "over load " << load_percent << " > " << load_limit << std::endl;
                     continue; // 負荷が設定値を超えている場合は動作しない
                 }
                 float target = target_position[i];
@@ -116,7 +116,7 @@ class XL320Node : public rclcpp::Node{
         for (auto config : finger_config){
             target_position.push_back(config.init);
         }
-        timer = this->create_wall_timer(1ms, timer_callback);
+        timer = this->create_wall_timer(2ms, timer_callback);
     }
 
     ~XL320Node(){
