@@ -1,4 +1,12 @@
-// できたらロボマス側のノードとコンポーネント化したい。
+/*
+state_message
+1. ROS実行成功
+2. UDP成功
+3. キャリブレーション完了
+4. トレース開始
+5. トレース終了
+*/
+
 // ライブラリのインクルードなど
 // ********************************************************************************************************************
 #include "rclcpp/rclcpp.hpp"
@@ -6,7 +14,7 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
-#include "std_msgs/msg/string.hpp"
+#include "std_msgs/msg/int32.hpp"
 
 using namespace std::chrono_literals;
 // ********************************************************************************************************************
@@ -15,7 +23,7 @@ using namespace std::chrono_literals;
 const int BAUDRATE = 115200;
 const std::string SERIAL_PORT = "/dev/ttyUSB0";
 // ********************************************************************************************************************
-// クラスの定義 
+// クラスの定義
 // ********************************************************************************************************************
 class ReadSerialNode : public rclcpp::Node{
     private:
@@ -39,10 +47,16 @@ class ReadSerialNode : public rclcpp::Node{
             std::istream is(&buffer);
             std::getline(is, line);
             if(!line.empty()){
+                // \nや\rを削除
+                line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+                line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
                 std::cout << line << std::endl;
-                auto msg = std_msgs::msg::String();
-                msg.data = line;
-                pub->publish(msg);
+                int num = std_msgs::msg::Int32();
+                // lineが数字の場合
+                if(std::all_of(line.begin(), line.end(), ::isdigit)){
+                    num.data = std::stoi(line);
+                    pub->publish(num);
+                }
             }
         }
         start_read();
@@ -57,7 +71,7 @@ class ReadSerialNode : public rclcpp::Node{
 
         port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
         start_read();
-        pub = this->create_publisher<std_msgs::msg::String>("serial_data", 10);
+        pub = this->create_publisher<std_msgs::msg::Int32>("state_message", 10);
         timer = this->create_wall_timer(10ms, timer_callback);
     }
 
