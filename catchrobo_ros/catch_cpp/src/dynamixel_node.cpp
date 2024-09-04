@@ -28,15 +28,15 @@ struct FingerConfig{
 // 定数等の定義
 // ********************************************************************************************************************
 const std::vector<FingerConfig> finger_config = {
-    // {1, 0.0, 2*M_PI, 0.0, false},
-    // {2, 0.0, 2*M_PI, 0.0, false},
-    // {3, 0.0, 2*M_PI, 0.0, false},
-    // {4, 0.0, 2*M_PI, 0.0, false},
-    // {5, 0.0, 2*M_PI, 0.0, false},
-    // {6, 0.0, 2*M_PI, 0.0, false},
-    // {7, 0.0, 2*M_PI, 0.0, false},
-    {8, 0.0, 2*M_PI, 0.0, false},
-    {9, 0.0, 2*M_PI, 0.0, false},
+    {1, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {2, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {3, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {4, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {5, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {6, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {7, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    {8, -179*M_PI/180, 179*M_PI/180, 0.0, false},
+    // {9, -179*M_PI/180, 179*M_PI/180, 0.0, false}
 };
 const FingerConfig wrist_config = {10, 0.0, 2*M_PI, 0.0, false};
 const char* DEVICE = "/dev/ttyUSB0";

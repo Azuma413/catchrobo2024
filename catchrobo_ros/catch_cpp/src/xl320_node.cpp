@@ -26,20 +26,18 @@ struct FingerConfig{
 // 定数等の定義
 // ********************************************************************************************************************
 const std::vector<FingerConfig> finger_config = {
-    {6, 0.0, 2*M_PI, 0.0, false},
-    {7, 0.0, 2*M_PI, 0.0, false},
-    {8, 0.0, 2*M_PI, 0.0, false},
-    {9, 0.0, 2*M_PI, 0.0, false},
-    {10, 0.0, 2*M_PI, 0.0, false},
-    {11, 0.0, 2*M_PI, 0.0, false},
-    {12, 0.0, 2*M_PI, 0.0, false},
-    // {14, 0.0, 2*M_PI, 0.0, false},
-    // {15, 0.0, 2*M_PI, 0.0, false},
-    {16, 0.0, 2*M_PI, 0.0, false}
+    {8, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    {9, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    {10, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    {11, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    {12, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    {14, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    {15, -149*M_PI/180, 149*M_PI/180, 0.0, false},
+    // {16, -149*M_PI/180, 149*M_PI/180, 0.0, false},
 };
 const char* DEVICE = "/dev/ttyUSB0";
 const uint32_t BAUDRATE = 1000000;
-const float load_limit = 100.0; // %
+const float load_limit = 90.0; // %
 // ********************************************************************************************************************
 // クラスの定義 
 // ********************************************************************************************************************
@@ -101,6 +99,7 @@ class XL320Node : public rclcpp::Node{
                 target += finger_config[i].init;
                 target = std::max(finger_config[i].min, std::min(finger_config[i].max, target));
                 dxl_wb.goalPosition(finger_config[i].id, target, &log);
+                std::cout << target*180/M_PI << log << std::endl;
             }
         };
         
