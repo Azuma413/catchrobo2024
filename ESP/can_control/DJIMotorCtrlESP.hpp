@@ -582,18 +582,12 @@ void add_user_can_func(int addr,std::function<void(twai_message_t* can_message)>
 void feedback_update_task(void* n){
     twai_message_t rx_message;
     while (1){
-        // Serial.println("feedback_update_task 0");
-        //接收CAN上数据
         ESP_ERROR_CHECK(twai_receive(&rx_message, portMAX_DELAY));
-        // Serial.println("feedback_update_task 1");
-        //如果是电机数据就更新到对应的对象
         if(rx_message.identifier>=0x201 && rx_message.identifier<=0x20B){
             motors[rx_message.identifier-0x201]->update_data(rx_message);
-        //查看是否为用户需要的can消息地址，如果是就调用用户自定义函数
         }else if(func_map.find(rx_message.identifier)!=func_map.end()){
             func_map[rx_message.identifier](&rx_message);
         }
-        // Serial.println("feedback_update_task 2");
     }
 }
 
@@ -678,33 +672,18 @@ void update_current_task(void* p){
     }
 }
 
-
-
-//初始化CAN总线
 void can_init(uint8_t TX_PIN, uint8_t RX_PIN,int current_update_hz){
-    //检测TWAI驱动是否已经安装
     twai_status_info_t now_twai_status;
     auto status = twai_get_status_info(&now_twai_status);
     if(status != ESP_ERR_INVALID_STATE){//如果驱动重复安装
         Serial.println("can is installed do not need install again");
         return;
     }
-
-    //TX是指CAN收发芯片的TX,RX同理
-    //总线速率,1Mbps
     static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_1MBITS();
-    //滤波器设置,接受所有地址的数据
     static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
-    //总线配置
     static const twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(gpio_num_t(TX_PIN), gpio_num_t(RX_PIN), TWAI_MODE_NO_ACK);
-
-    //传入驱动配置信息
     twai_driver_install(&g_config, &t_config, &f_config);
-    
-    //CAN驱动启动
     twai_start();
-    //创建任务
-    
     xTaskCreate(feedback_update_task,"moto_fb",4096,nullptr,5,nullptr);//电机反馈任务
     xTaskCreate(update_current_task,"update_current_task",4096,&current_update_hz,5,nullptr);//电流控制任务
     delay(100);

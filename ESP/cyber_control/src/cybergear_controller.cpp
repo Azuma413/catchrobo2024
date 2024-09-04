@@ -1,7 +1,5 @@
 #include "cybergear_controller.hh"
-
 #include <Arduino.h>
-
 #include "cybergear_can_interface.hh"
 #include "cybergear_driver.hh"
 #include "cybergear_driver_defs.hh"

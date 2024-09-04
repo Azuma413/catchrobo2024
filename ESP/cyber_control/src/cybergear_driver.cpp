@@ -1,10 +1,6 @@
 #include "cybergear_driver.hh"
-
 #include <Arduino.h>
-#include <M5Stack.h>
-
 #include <vector>
-
 #include "cybergear_driver_defs.hh"
 #include "cybergear_driver_utils.hh"
 
