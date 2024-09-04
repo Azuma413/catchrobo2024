@@ -1,3 +1,5 @@
+// xl320
+
 // ライブラリのインクルードなど
 // ********************************************************************************************************************
 #include <cstdio>
@@ -24,11 +26,6 @@ struct FingerConfig{
 // 定数等の定義
 // ********************************************************************************************************************
 const std::vector<FingerConfig> finger_config = {
-    {1, 0.0, 2*M_PI, 0.0, false},
-    {2, 0.0, 2*M_PI, 0.0, false},
-    {3, 0.0, 2*M_PI, 0.0, false},
-    {4, 0.0, 2*M_PI, 0.0, false},
-    {5, 0.0, 2*M_PI, 0.0, false},
     {6, 0.0, 2*M_PI, 0.0, false},
     {7, 0.0, 2*M_PI, 0.0, false},
     {8, 0.0, 2*M_PI, 0.0, false},
@@ -36,17 +33,16 @@ const std::vector<FingerConfig> finger_config = {
     {10, 0.0, 2*M_PI, 0.0, false},
     {11, 0.0, 2*M_PI, 0.0, false},
     {12, 0.0, 2*M_PI, 0.0, false},
-    {13, 0.0, 2*M_PI, 0.0, false},
-    {14, 0.0, 2*M_PI, 0.0, false},
-    {15, 0.0, 2*M_PI, 0.0, false},
+    // {14, 0.0, 2*M_PI, 0.0, false},
+    // {15, 0.0, 2*M_PI, 0.0, false},
     {16, 0.0, 2*M_PI, 0.0, false}
 };
 const char* DEVICE = "/dev/ttyUSB0";
-const uint32_t BAUDRATE = 115200; //1000000;
+const uint32_t BAUDRATE = 1000000;
 // ********************************************************************************************************************
 // クラスの定義 
 // ********************************************************************************************************************
-class FingerControlNode : public rclcpp::Node{
+class XL320Node : public rclcpp::Node{
     private:
     rclcpp::Subscription<Float32MultiArray>::SharedPtr subscriber;
     rclcpp::TimerBase::SharedPtr timer;
@@ -55,8 +51,8 @@ class FingerControlNode : public rclcpp::Node{
     const char* log;
 
     public:
-    FingerControlNode() : Node("finger_control_node"){
-        RCLCPP_INFO(this->get_logger(), "finger_control_node is activated");
+    XL320Node() : Node("xl320_node"){
+        RCLCPP_INFO(this->get_logger(), "xl320_node is activated");
         std::cout << "セットアップを開始します\n" << std::endl;
 
         dxl_wb.init(DEVICE, BAUDRATE, &log);
@@ -91,7 +87,9 @@ class FingerControlNode : public rclcpp::Node{
                 if (finger_config[i].reverse){
                     target = -target;
                 }
-                dxl_wb.goalPosition(finger_config[i].id, target + finger_config[i].init, &log);
+                target += finger_config[i].init;
+                target = std::max(finger_config[i].min, std::min(finger_config[i].max, target));
+                dxl_wb.goalPosition(finger_config[i].id, target, &log);
             }
         };
         
@@ -101,18 +99,16 @@ class FingerControlNode : public rclcpp::Node{
             }
         };
 
-        this->declare_parameter("qos_depth", 10);
-        int8_t qos_depth = 0;
-        this->get_parameter("qos_depth", qos_depth);
+        int8_t qos_depth = 10;
         const auto QOS_RKL10V = rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
-        subscriber =this->create_subscription<Float32MultiArray>("finger_rad", QOS_RKL10V, topic_callback);
+        subscriber =this->create_subscription<Float32MultiArray>("x320_deg", QOS_RKL10V, topic_callback);
         for (auto config : finger_config){
             target_position.push_back(config.init);
         }
         timer = this->create_wall_timer(5ms, timer_callback);
     }
 
-    ~FingerControlNode(){
+    ~XL320Node(){
         for (auto config : finger_config){
             dxl_wb.torqueOff(config.id, &log);
             std::cout << "ID " << (int)config.id << " のトルクをオフ\n" << log << std::endl;
@@ -125,7 +121,7 @@ class FingerControlNode : public rclcpp::Node{
 int main(int argc, char * argv[])
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<FingerControlNode>();
+    auto node = std::make_shared<XL320Node>();
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;

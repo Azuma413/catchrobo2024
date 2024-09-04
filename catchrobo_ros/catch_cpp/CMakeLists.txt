@@ -12,7 +12,8 @@ src/dynamixel_workbench_toolbox/dynamixel_workbench.cpp include/dynamixel_workbe
 )
 
 ament_auto_add_executable(read_serial_node src/read_serial_node.cpp)
-ament_auto_add_executable(finger_control_node src/finger_control_node.cpp)
+ament_auto_add_executable(xl320_node src/xl320_node.cpp)
+ament_auto_add_executable(dynamixel_node src/dynamixel_node.cpp)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
