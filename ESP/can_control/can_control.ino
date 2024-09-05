@@ -39,10 +39,31 @@ int calc_identifier(uint8_t master_id, uint8_t motor_id){
 }
 
 bool calib_motors(){
-    
-    for(auto id : cyber_ids){
-        controller.set_mech_position_to_zero(id);
+    float calib_torque = 0.5;
+    float calib_speed = 0.1; // rad/s
+    // トルク制御モードに変更
+    controller.set_run_mode(MODE_CURRENT);
+    // トルク0.5くらいで回転
+    controller.send_current_command(cyber_ids, {calib_torque*sw_configs[0].calib_direction, calib_torque*sw_configs[1].calib_direction});
+    delay(1000);
+    bool flag = false;
+    while(true){ // 速度が一定以下になったら停止
+        controller.get_motor_status(motor_status);
+        if(motor_status[0].velocity < calib_speed){
+            controller.set_mech_position_to_zero(cyber_ids[0]);
+            controller.send_current_command(cyber_ids[0], 0);
+            if(!flag) flag = true;
+            else break;
+        }
+        if(motor_status[1].velocity < calib_speed){
+            controller.set_mech_position_to_zero(cyber_ids[1]);
+            controller.send_current_command(cyber_ids[1], 0);
+            if(!flag) flag = true;
+            else break;
+        }
     }
+    // 位置制御モードに変更
+    controller.set_run_mode(MODE_POSITION);
     return true;
 }
 
@@ -62,6 +83,7 @@ void setup() {
     gm6020_1.setup();
     gm6020_2.setup();
     controller.enable_motors();
+    calib_motors();
 }
 
 float target_angle = 0;

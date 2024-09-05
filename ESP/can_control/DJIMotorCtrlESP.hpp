@@ -7,6 +7,7 @@
 #include "driver/twai.h" //can驱动,esp32sdk自带
 #include "freertos/task.h"
 #include "PID_CONTROL.hpp"//PID控制器文件
+#include "adc_read.hpp"
 /*↓↓↓本文件的类和函数↓↓↓*/
 
 //由于接受电调数据的类，用户无需创建对象
@@ -405,6 +406,28 @@ class M3508_P19:public MOTOR{
             taget_speed = speed*19.0;
             acceleration=acce;
         }
+        void set_angle(float angle,int8_t dir =0){//dir:0为最近方向,1为正方向,-1为负方向
+            angle-=angle_offset;
+            reset_location(data->angle);
+            float now_angle = get_adc_deg();
+            // 确保 dir 为 -1、0 或 1
+            dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
+            //确保angle在0-360度之间
+            angle=fmodf(angle,360.f);
+            angle=angle>=0?angle:360.f+angle;
+
+            //电机需要旋转的角度
+            float delta = angle - now_angle;
+
+
+            while(dir*delta<0){//当dir不为0时向指定方向绕圈
+                delta+=dir*360;
+            }
+            if(abs(delta)>180&&dir==0){//找到最近方向
+                delta+=delta>0?-360:360;
+            }
+            set_location(data->angle+delta*8192.f/360.f);
+        }
         //获取当前电流,单位mA
         float get_curunt_ma(){
             return 2e4*data->current/16384;
@@ -413,6 +436,8 @@ class M3508_P19:public MOTOR{
         float get_now_speed() override{
             return data->speed/19.0;
         }
+    protected:
+        float angle_offset = 0;
 };
 
 
