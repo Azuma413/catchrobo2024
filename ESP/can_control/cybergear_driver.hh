@@ -305,6 +305,14 @@ public:
    * @return unsigned long total send count from this driver class.
    */
   unsigned long send_count() const { return send_count_; }
+  /**
+   * @brief Receive motor data from can interface
+   *
+   * @param mot     motor status
+   * @return true   success to receive
+   * @return false  failed to receive
+   */
+  bool receive_motor_data();
 
 private:
   /**
@@ -342,15 +350,6 @@ private:
    * @param data    send data
    */
   void send_command(uint8_t can_id, uint8_t cmd_id, uint16_t option, uint8_t len, uint8_t * data);
-
-  /**
-   * @brief Receive motor data from can interface
-   *
-   * @param mot     motor status
-   * @return true   success to receive
-   * @return false  failed to receive
-   */
-  bool receive_motor_data(MotorStatus & mot);
 
   /**
    * @brief process motor response packet

@@ -28,7 +28,7 @@ const std::string SERIAL_PORT = "/dev/ttyUSB0";
 class ReadSerialNode : public rclcpp::Node{
     private:
     rclcpp::TimerBase::SharedPtr timer;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub;
+    rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr pub;
     boost::asio::io_service io;
     boost::asio::serial_port port;
     boost::asio::streambuf buffer;
@@ -51,7 +51,7 @@ class ReadSerialNode : public rclcpp::Node{
                 line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
                 line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
                 std::cout << line << std::endl;
-                int num = std_msgs::msg::Int32();
+                std_msgs::msg::Int32 num;
                 // lineが数字の場合
                 if(std::all_of(line.begin(), line.end(), ::isdigit)){
                     num.data = std::stoi(line);

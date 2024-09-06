@@ -348,7 +348,7 @@ public:
    * @return false
    */
   bool get_software_config(uint8_t id, CybergearSoftwareConfig & config);
-
+  bool set_software_config(uint8_t id, const CybergearSoftwareConfig & config);
   /**
    * @brief Process can packet
    *

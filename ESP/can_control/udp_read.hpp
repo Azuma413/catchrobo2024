@@ -2,20 +2,20 @@
 #include <WiFiUdp.h>
 #include "freertos/task.h"
 
-int port = 9999;
-int data_size = 5;
+const int port = 9999;
+const int data_size = 5;
 
 const IPAddress ip(192, 168, 0, 77);
 const IPAddress gateway(192, 168, 0, 1);
 const IPAddress subnet(255, 255, 255, 0);
 
 // UDPクラス
-class UDP {
+class UDPRead {
 public:
     float udp_data[data_size];
     WiFiUDP udp;  // クラス内にudpを含める
 
-    UDP(const char* ssid, const char* password) : ssid(ssid), password(password) {}
+    UDPRead(const char* ssid, const char* password) : ssid(ssid), password(password) {}
 
     void init() {
         if (!WiFi.config(ip, gateway, subnet)) {
@@ -30,6 +30,9 @@ public:
         udp.begin(port);  // クラスメンバーのudpを使用
         xTaskCreate(udp_read_task, "udp_read_task", 4096, this, 5, nullptr);
     }
+    float get_data(int index) {
+        return udp_data[index];
+    }
 
 private:
     const char* ssid;
@@ -37,7 +40,7 @@ private:
 
     // タスクのエントリポイント用ラッパー関数
     static void udp_read_task(void* parameter) {
-        UDP* udpInstance = (UDP*)parameter;  // クラスのインスタンスを取得
+        UDPRead* udpInstance = (UDPRead*)parameter;  // クラスのインスタンスを取得
         while (true) {
             int packet_size = udpInstance->udp.parsePacket();  // クラスメンバーのudpにアクセス
             if (packet_size > 0) {

@@ -408,36 +408,42 @@ class M3508_P19:public MOTOR{
         }
         void set_angle(float angle,int8_t dir =0){//dir:0为最近方向,1为正方向,-1为负方向
             angle-=angle_offset;
-            reset_location(data->angle);
+            // reset_location(data->angle);
             float now_angle = get_adc_deg();
-            // 确保 dir 为 -1、0 或 1
-            dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
-            //确保angle在0-360度之间
-            angle=fmodf(angle,360.f);
-            angle=angle>=0?angle:360.f+angle;
-
-            //电机需要旋转的角度
+            // dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
+            // angle=fmodf(angle,360.f);
+            // angle=angle>=0?angle:360.f+angle;
             float delta = angle - now_angle;
-
-
-            while(dir*delta<0){//当dir不为0时向指定方向绕圈
-                delta+=dir*360;
-            }
+            // while(dir*delta<0){//当dir不为0时向指定方向绕圈
+            //     delta+=dir*360;
+            // }
             if(abs(delta)>180&&dir==0){//找到最近方向
                 delta+=delta>0?-360:360;
             }
-            set_location(data->angle+delta*8192.f/360.f);
+            delta_diff = delta - prior_delta;
+            prior_delta = delta;
+            delta_int += delta;
+            float pid = delta*location_pid_contraler.Kp + delta_diff*location_pid_contraler.Kd + delta_int*location_pid_contraler.Ki;
+            // Serial.printf("delta(%f) delta_diff(%f) delta_int(%f) pid(%f)\n", delta*location_pid_contraler.Kp, delta_diff*location_pid_contraler.Kd, delta_int*location_pid_contraler.Ki, pid);
+            set_speed(max(min_speed, min(max_speed, pid)));
+            // Serial.printf("angle: %f\n", data->get_angle());
+            // set_location(data->angle+delta*8192.f/360.f);
         }
-        //获取当前电流,单位mA
+
         float get_curunt_ma(){
             return 2e4*data->current/16384;
         }
-        //获取减速箱输出速度，单位RPM
+
         float get_now_speed() override{
             return data->speed/19.0;
         }
     protected:
         float angle_offset = 0;
+        float prior_delta = 0;
+        float delta_diff = 0;
+        float delta_int = 0;
+        float max_speed = 500;
+        float min_speed = -500;
 };
 
 
@@ -612,7 +618,7 @@ void feedback_update_task(void* n){
         }else if(func_map.find(rx_message.identifier)!=func_map.end()){
             func_map[rx_message.identifier](&rx_message);
         }else{
-            Serial.printf("Unknown CAN ID:%d\n",rx_message.identifier);
+            // Serial.printf("Unknown CAN ID:%d\n",rx_message.identifier);
         }
     }
 }

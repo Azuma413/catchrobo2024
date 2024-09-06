@@ -109,6 +109,13 @@ bool CybergearController::set_motor_config(const CybergearHardwareConfig & confi
   return true;
 }
 
+bool CybergearController::set_software_config(uint8_t id, const CybergearSoftwareConfig & config)
+{
+  if (!check_motor_id(id)) return false;
+  sw_configs_[id] = config;
+  return true;
+}
+
 bool CybergearController::set_speed_limit(uint8_t id, float limit)
 {
   if (!check_motor_id(id)) return false;
@@ -298,7 +305,7 @@ bool CybergearController::get_motor_status(std::vector<MotorStatus> & status)
   status.clear();
   for (uint8_t idx = 0; idx < motor_ids_.size(); ++idx) {
     if (drivers_.find(motor_ids_[idx]) == drivers_.end()) return false;
-    MotorStatus mot = drivers_[motor_ids_[idx]].get_motor_status();
+    MotorStatus mot; // = drivers_[motor_ids_[idx]].get_motor_status();
     get_motor_status(motor_ids_[idx], mot);
     status.push_back(mot);
   }
@@ -307,6 +314,7 @@ bool CybergearController::get_motor_status(std::vector<MotorStatus> & status)
 
 bool CybergearController::get_motor_status(uint8_t id, MotorStatus & status)
 {
+  process_packet();
   if (!check_motor_id(id)) return false;
   status = drivers_[id].get_motor_status();
   status.position = sw_configs_[id].direction * status.position + sw_configs_[id].position_offset;
@@ -325,34 +333,42 @@ bool CybergearController::get_software_config(uint8_t id, CybergearSoftwareConfi
 bool CybergearController::process_packet()
 {
   bool is_updated = false;
-  while (can_->available()) {
-    unsigned long id;
-    uint8_t len;
-    if (!can_->read_message(id, receive_buffer_, len)) {
-      continue;
-    }
-
-    // if id is not mine
-    uint8_t receive_can_id = id & 0xff;
-    if (receive_can_id != master_can_id_) {
-      CG_DEBUG_PRINTF(
-        "Invalid master can id. Expected=[0x%02x] Actual=[0x%02x] Raw=[%x]\n", master_can_id_,
-        receive_can_id, id);
-      continue;
-    }
-
-    uint8_t motor_can_id = (id & 0xff00) >> 8;
-    if (drivers_.find(motor_can_id) == drivers_.end()) {
-      continue;
-    }
-
-    // parse packet --------------
-    if (drivers_[motor_can_id].update_motor_status(id, receive_buffer_, len)) {
-      motor_update_flag_[motor_can_id] = true;
+  for (uint8_t idx = 0; idx < motor_ids_.size(); ++idx) {
+    if (drivers_.find(motor_ids_[idx]) == drivers_.end()) return false;
+    if (drivers_[motor_ids_[idx]].receive_motor_data()) {
+      motor_update_flag_[motor_ids_[idx]] = true;
       is_updated = true;
       recv_count_++;
     }
   }
+  // while (can_->available()) {
+  //   unsigned long id;
+  //   uint8_t len;
+  //   if (!can_->read_message(id, receive_buffer_, len)) {
+  //     continue;
+  //   }
+
+  //   // if id is not mine
+  //   uint8_t receive_can_id = id & 0xff;
+  //   if (receive_can_id != master_can_id_) {
+  //     CG_DEBUG_PRINTF(
+  //       "Invalid master can id. Expected=[0x%02x] Actual=[0x%02x] Raw=[%x]\n", master_can_id_,
+  //       receive_can_id, id);
+  //     continue;
+  //   }
+
+  //   uint8_t motor_can_id = (id & 0xff00) >> 8;
+  //   if (drivers_.find(motor_can_id) == drivers_.end()) {
+  //     continue;
+  //   }
+
+  //   // parse packet --------------
+  //   if (drivers_[motor_can_id].update_motor_status(id, receive_buffer_, len)) {
+  //     motor_update_flag_[motor_can_id] = true;
+  //     is_updated = true;
+  //     recv_count_++;
+  //   }
+  // }
 
   return is_updated;
 }
