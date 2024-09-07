@@ -45,8 +45,6 @@ class PubUDPNode : public rclcpp::Node {
                                        (struct sockaddr*)&serverAddress, sizeof(serverAddress));
             if (sentBytes < 0) {
                 perror("Failed to send data");
-            } else {
-                std::cout << "Data sent successfully.\n";
             }
         };
         

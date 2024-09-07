@@ -7,8 +7,8 @@
 // const char* ssid = "NotFreeWiFi";
 // const char* password = "924865hirekatsu";
 // 本番設定
-const char* ssid = "NotFreeSub";
-const char* password = "924865hirekatsu";
+const char* ssid = "Kikaiken_WiFi";
+const char* password = "Kikaiken_WiFi";
 
 // UDP通信設定
 UDPRead udp(ssid, password);
