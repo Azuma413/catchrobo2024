@@ -1,5 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/int32.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include <iostream>
 #include <cstring>      // for memset
@@ -8,7 +8,7 @@
 #include <unistd.h>     // for close
 
 using namespace std::chrono_literals;
-using Bool = std_msgs::msg::Bool;
+using Int32 = std_msgs::msg::Int32;
 using Twist = geometry_msgs::msg::Twist;
 
 const char* ipAddress = "192.168.0.77";
@@ -18,9 +18,9 @@ class PubUDPNode : public rclcpp::Node {
     private:
     rclcpp::TimerBase::SharedPtr timer;
     rclcpp::Subscription<Twist>::SharedPtr twist_sub;
-    rclcpp::Subscription<Bool>::SharedPtr bool_sub;
-    std::vector<double> target_position = std::vector<double>(5, 0.0);  // 初期化
-    bool flag = false;
+    rclcpp::Subscription<Int32>::SharedPtr mode_sub;
+    float target_position[5];
+    uint8_t mode = 0;
     struct sockaddr_in serverAddress;
     int sock;
 
@@ -28,32 +28,26 @@ class PubUDPNode : public rclcpp::Node {
     PubUDPNode() : Node("pub_udp_node") {
         std::cout << "call PubUDPNode!" << std::endl;
         auto timer_callback = [this]() -> void {
-            uint8_t boolByte = static_cast<uint8_t>(flag);
-            float floats[5] = {
-                static_cast<float>(target_position[0]), 
-                static_cast<float>(target_position[1]), 
-                static_cast<float>(target_position[2]), 
-                static_cast<float>(target_position[3]), 
-                static_cast<float>(target_position[4])
-            };
-            uint8_t buffer[sizeof(boolByte) + sizeof(float) * 5];
+            uint8_t buffer[sizeof(mode) + sizeof(float) * 5];
             memset(buffer, 0, sizeof(buffer));
-            memcpy(buffer, &boolByte, sizeof(boolByte)); 
-            memcpy(buffer + sizeof(boolByte), floats, sizeof(float) * 5); // その後にfloat 5つ
-
-            ssize_t sentBytes = sendto(sock, buffer, sizeof(buffer), 0, 
-                                       (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+            memcpy(buffer, &mode, sizeof(mode)); 
+            memcpy(buffer + sizeof(mode), target_position, sizeof(float) * 5); // その後にfloat 5つ
+            ssize_t sentBytes = sendto(sock, buffer, sizeof(buffer), 0, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
             if (sentBytes < 0) {
                 perror("Failed to send data");
             }
         };
         
         auto twist_callback = [this](const Twist::SharedPtr msg) -> void {
-            target_position = {msg->linear.x, msg->linear.y, msg->linear.z, msg->angular.x, msg->angular.y};
+            target_position[0] = (float)msg->linear.x;
+            target_position[1] = (float)msg->linear.y;
+            target_position[2] = (float)msg->linear.z;
+            target_position[3] = (float)msg->angular.x;
+            target_position[4] = (float)msg->angular.y;
         };
 
-        auto bool_callback = [this](const Bool::SharedPtr msg) -> void {
-            flag = msg->data;
+        auto mode_callback = [this](const Int32::SharedPtr msg) -> void {
+            mode = msg->data;
         };
 
         // udp setup
@@ -68,7 +62,7 @@ class PubUDPNode : public rclcpp::Node {
         serverAddress.sin_addr.s_addr = inet_addr(ipAddress);
 
         twist_sub = this->create_subscription<Twist>("target", 10, twist_callback);
-        bool_sub = this->create_subscription<Bool>("flag", 10, bool_callback);
+        mode_sub = this->create_subscription<Int32>("mode", 10, mode_callback);
         timer = this->create_wall_timer(10ms, timer_callback);
     }
 

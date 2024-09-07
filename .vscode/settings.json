@@ -48,7 +48,10 @@
         "ostream": "cpp",
         "compare": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "*.ipp": "cpp",
+        "list": "cpp",
+        "system_error": "cpp"
     },
     "cmake.sourceDirectory": "E:/SourceCode/Github/catchrobo2024/catchrobo_ros/catch_cpp"
 }

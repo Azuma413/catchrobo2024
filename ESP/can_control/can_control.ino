@@ -25,7 +25,6 @@ const int m3508_1_id = 5;
 //                          kp,     ki,     kd,     dead_zone, max_value
 pid_param m3508_speed(    5,      1,      0.01,   1,      10000);
 pid_param m3508_location( 5,    0.00001,    10.0,   2000,   3000);
-// pid_param m3508_location( 0.1,    0.1,    0,      2000,   3000);
 pid_param gm6020_speed(   10,     0,      0,      1,      16384);
 pid_param gm6020_location(1.0,    0.1,    0.03,   5,      350);
 
@@ -96,7 +95,7 @@ void setup() {
     Serial.begin(115200);
     while(!Serial);
     adc_setup();
-    // udp.init();
+    udp.init();
     can_init(RX_PIN, TX_PIN, 1000);
     controller.init(cyber_ids, sw_configs, MODE_POSITION, &interface, 0);
     for(auto id : cyber_ids){
@@ -113,59 +112,30 @@ void setup() {
     m3508_1.setup();
     gm6020_1.setup();
     gm6020_2.setup();
-    // controller.enable_motors();
-    // calib_motors();
+    controller.enable_motors();
+    calib_motors();
     Serial.println("setup finish");
 }
 
-float target_deg = 0;
-bool flag  = true;
-float rate = 0.05;
-float location_deg_rate = 2000;
-
-float update_target_angle(float target_angle){
-    float delta_deg = 3;
-    if (target_angle < 10){
-        flag = true;
-    }else if(target_angle > 350){
-        flag = false;
-    }
-    if(flag){
-        target_angle += delta_deg;
-    }else{
-        target_angle -= delta_deg;
-    }
-    return target_angle;
-}
-int count = 0;
-// step応答
-float update_target_angle2(float target_angle){
-    count++;
-    if (count < 500){
-        return 90;
-    }else if(count < 1000){
-        return 270;
-    }else{
-        count = 0;
-    }
-}
-
+std::vector<float> target_angle = {0, 0, 0, 0, 0};
+uint8_t mode;
 void loop() {
-    target_deg = update_target_angle2(target_deg);
-    Serial.print(target_deg);
-    // controller.get_motor_status(motor_status);
-    // Serial.printf("UDP data: %f, %f, %f, %f, %f\n", udp.get_data(0), udp.get_data(1), udp.get_data(2), udp.get_data(3), udp.get_data(4));
-    // degree = degree * (1.0 - rate) + degree * rate;
-    // m3508_1.set_location((int64_t)target_angle*location_deg_rate);
-    m3508_1.set_angle(target_deg);
-    // gm6020_1.set_angle(target_angle);
-    // float angle = gm6020_1.get_angle();
-    // Serial.println(angle);
-    // target_angle = degree*M_PI/180;
-    Serial.print(",");
-    float degree = get_adc_deg();
-    Serial.println(degree);
-    // controller.send_position_command(cyber_ids, {target_angle, target_angle});
-    // Serial.println(motor_status[1].position*180/M_PI);
+    mode = udp.get_mode();
+    if (mode == 0) { // 接続テスト
+        Serial.println("connected");
+    }
+    else if (mode == 1) { // 位置制御
+        udp.get_data(target_angle); // degree
+        // CAN ID順に割り当てる
+        controller.send_position_command(cyber_ids, {target_angle[0]*M_PI/180, target_angle[1]*M_PI/180});
+        gm6020_1.set_angle(target_angle[2]);
+        gm6020_2.set_angle(target_angle[3]);
+        m3508_1.set_angle(target_angle[4]);
+    }
+    else if (mode == 2) { // サスペンド
+        Serial.println("suspend");
+    }else{
+        Serial.println("Invalid mode");
+    }
     delay(10);
 }
