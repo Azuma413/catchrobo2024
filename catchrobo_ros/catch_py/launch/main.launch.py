@@ -3,6 +3,12 @@ from launch_ros.actions import Node
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.actions import OpaqueFunction
+import sys
+import pathlib
+import os
+from ament_index_python.packages import get_package_share_directory
+sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
+sys.path.append(os.path.join(get_package_share_directory('realsense2_camera'), 'launch'))
 import rs_launch
 
 local_parameters = [{'name': 'camera_name',                  'default': 'camera', 'description': 'camera unique name'},

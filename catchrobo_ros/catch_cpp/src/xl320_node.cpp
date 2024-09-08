@@ -99,7 +99,7 @@ class XL320Node : public rclcpp::Node{
                 target += finger_config[i].init;
                 target = std::max(finger_config[i].min, std::min(finger_config[i].max, target));
                 dxl_wb.goalPosition(finger_config[i].id, target, &log);
-                std::cout << target*180/M_PI << log << std::endl;
+                // std::cout << target*180/M_PI << log << std::endl;
             }
         };
         

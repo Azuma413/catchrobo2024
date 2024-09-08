@@ -38,7 +38,7 @@ public:
 private:
     const char* ssid;
     const char* password;
-    uint8_t mode = 0;
+    uint8_t mode = 10;
     float udp_data[data_size];
     WiFiUDP udp;  // クラス内にudpを含める
 

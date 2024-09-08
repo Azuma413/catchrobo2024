@@ -4,11 +4,11 @@
 #include "cybergear_can_interface.hpp"
 
 // テスト時の設定
-// const char* ssid = "NotFreeWiFi";
-// const char* password = "924865hirekatsu";
+const char* ssid = "NotFreeWiFi";
+const char* password = "924865hirekatsu";
 // 本番設定
-const char* ssid = "Kikaiken_WiFi";
-const char* password = "Kikaiken_WiFi";
+// const char* ssid = "Kikaiken_WiFi";
+// const char* password = "Kikaiken_WiFi";
 
 // UDP通信設定
 UDPRead udp(ssid, password);
@@ -113,7 +113,7 @@ void setup() {
     gm6020_1.setup();
     gm6020_2.setup();
     controller.enable_motors();
-    calib_motors();
+    // calib_motors();
     Serial.println("setup finish");
 }
 
@@ -122,9 +122,10 @@ uint8_t mode;
 void loop() {
     mode = udp.get_mode();
     if (mode == 0) { // 接続テスト
-        Serial.println("connected");
+        Serial.println(2);
     }
     else if (mode == 1) { // 位置制御
+        Serial.println(3);
         udp.get_data(target_angle); // degree
         // CAN ID順に割り当てる
         controller.send_position_command(cyber_ids, {target_angle[0]*M_PI/180, target_angle[1]*M_PI/180});
@@ -133,9 +134,7 @@ void loop() {
         m3508_1.set_angle(target_angle[4]);
     }
     else if (mode == 2) { // サスペンド
-        Serial.println("suspend");
-    }else{
-        Serial.println("Invalid mode");
+        Serial.println(4);
     }
     delay(10);
 }
