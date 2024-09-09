@@ -15,18 +15,15 @@ state_message
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include "std_msgs/msg/int8.hpp"
+#include <thread>
 
 using namespace std::chrono_literals;
-// ********************************************************************************************************************
-// 定数の定義
-// ********************************************************************************************************************
+
 const int BAUDRATE = 115200;
 const std::string SERIAL_PORT = "/dev/ttyUSB0";
-// ********************************************************************************************************************
-// クラスの定義
-// ********************************************************************************************************************
-class ReadSerialNode : public rclcpp::Node{
-    private:
+
+class ReadSerialNode : public rclcpp::Node {
+private:
     rclcpp::TimerBase::SharedPtr timer;
     rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr pub;
     boost::asio::io_service io;
@@ -34,63 +31,46 @@ class ReadSerialNode : public rclcpp::Node{
     boost::asio::streambuf buffer;
     std::string line; // シリアルポートから読み込んだデータを格納する変数
     std_msgs::msg::Int8 num;
-    // シリアルポートからの読み込みを開始する
-    void start_read(){
+    std::thread io_thread;
+
+    void start_read() {
         boost::asio::async_read_until(port, buffer, '\n',
             boost::bind(&ReadSerialNode::handle_read, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred)
         );
     }
-    // シリアルポートからの読み込みが完了したときに呼び出される
-    void handle_read(const boost::system::error_code& error, std::size_t bytes_transferred){
-        if (!error){
+
+    void handle_read(const boost::system::error_code& error, std::size_t bytes_transferred) {
+        if (!error) {
             std::istream is(&buffer);
             std::getline(is, line);
-            if(!line.empty()){
-                // \nや\rを削除
-                line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
-                line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-                // lineが数字の場合
-                if(std::all_of(line.begin(), line.end(), ::isdigit)){
-                    try {
-                        num.data = std::stoi(line);
-                    } catch (const std::invalid_argument& e) {
-                        std::cerr << "Invalid argument: " << e.what() << std::endl;
-                    } catch (const std::out_of_range& e) {
-                        std::cerr << "Out of range: " << e.what() << std::endl;
-                    }
-                }else{
-                    std::cout << line << std::endl;
-                }
-            }
-        }
-        start_read();
-    }
-
-    public:
-    ReadSerialNode() : Node("read_serial_node"), io(), port(io, SERIAL_PORT){
-        std::cout << "call ReadSerialNode!" << std::endl;
-        auto timer_callback = [this]() -> void{
-            io.poll();
+            num.data = std::stoi(line);
             pub->publish(num);
-        };
-        num.data = 1;
-        port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
-        start_read();
-        pub = this->create_publisher<std_msgs::msg::Int8>("state_message", 10);
-        timer = this->create_wall_timer(100ms, timer_callback);
+            start_read();
+        } else {
+            RCLCPP_ERROR(this->get_logger(), "Error on receive: %s", error.message().c_str());
+        }
     }
 
-    ~ReadSerialNode(){
-        port.close();
+public:
+    ReadSerialNode() : Node("read_serial_node"), port(io, SERIAL_PORT) {
+        port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
+        pub = this->create_publisher<std_msgs::msg::Int8>("serial_data", 10);
+        start_read();
+        io_thread = std::thread([this]() { io.run(); });
+    }
+
+    ~ReadSerialNode() {
+        io.stop();
+        if (io_thread.joinable()) {
+            io_thread.join();
+        }
     }
 };
-// ********************************************************************************************************************
-// メイン関数
-// ********************************************************************************************************************
-int main(int argc, char* argv[]){
-    rclcpp::init(argc,argv);
+
+int main(int argc, char * argv[]) {
+    rclcpp::init(argc, argv);
     auto node = std::make_shared<ReadSerialNode>();
     rclcpp::spin(node);
     rclcpp::shutdown();
