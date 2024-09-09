@@ -45,20 +45,36 @@ private:
         if (!error) {
             std::istream is(&buffer);
             std::getline(is, line);
-            num.data = std::stoi(line);
-            pub->publish(num);
+            // \nや\rを削除
+            line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            // lineが数字の場合
+            if(std::all_of(line.begin(), line.end(), ::isdigit)){
+                try {
+                    num.data = std::stoi(line);
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument: " << e.what() << std::endl;
+                } catch (const std::out_of_range& e) {
+                    std::cerr << "Out of range: " << e.what() << std::endl;
+                }
+            }else{
+                std::cout << line << std::endl;
+            }
             start_read();
-        } else {
-            RCLCPP_ERROR(this->get_logger(), "Error on receive: %s", error.message().c_str());
         }
     }
 
 public:
     ReadSerialNode() : Node("read_serial_node"), port(io, SERIAL_PORT) {
+        std::cout << "Call ReadSerialNode" << std::endl;
+        auto timer_callback = [this]() -> void{
+            pub->publish(num);
+        };
         port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
-        pub = this->create_publisher<std_msgs::msg::Int8>("serial_data", 10);
+        pub = this->create_publisher<std_msgs::msg::Int8>("state_message", 10);
         start_read();
         io_thread = std::thread([this]() { io.run(); });
+        timer = this->create_wall_timer(100ms, timer_callback);
     }
 
     ~ReadSerialNode() {
