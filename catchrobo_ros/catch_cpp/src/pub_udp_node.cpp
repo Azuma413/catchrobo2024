@@ -12,7 +12,7 @@ using Int32 = std_msgs::msg::Int32;
 using Twist = geometry_msgs::msg::Twist;
 
 const char* ipAddress = "192.168.0.77";
-int port = 9999;
+int port = 12345;
 
 class PubUDPNode : public rclcpp::Node {
     private:

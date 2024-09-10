@@ -70,6 +70,7 @@ public:
         auto timer_callback = [this]() -> void{
             pub->publish(num);
         };
+        num.data = 1;
         port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
         pub = this->create_publisher<std_msgs::msg::Int8>("state_message", 10);
         start_read();
