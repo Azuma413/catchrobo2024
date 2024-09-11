@@ -502,6 +502,7 @@ class GM6020:public MOTOR{
             if(abs(delta)>180&&dir==0){//找到最近方向
                 delta+=delta>0?-360:360;
             }
+            Serial.println(delta);
             set_location(data->angle+delta*8192.f/360.f);
         }
         //设置角度偏移量，范围：-180_180，单位：度

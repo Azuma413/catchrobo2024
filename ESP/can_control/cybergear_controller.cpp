@@ -286,9 +286,7 @@ bool CybergearController::send_current_command(
 bool CybergearController::send_current_command(uint8_t id, float current)
 {
   if (!check_motor_id(id)) return false;
-  float cur = std::max(
-    std::min(sw_configs_[id].direction * current, sw_configs_[id].limit_current),
-    -sw_configs_[id].limit_current);
+  float cur = std::max(std::min(sw_configs_[id].direction * current, sw_configs_[id].limit_current), -sw_configs_[id].limit_current);
   drivers_[id].set_current_ref(cur);
   return true;
 }
@@ -314,7 +312,10 @@ bool CybergearController::get_motor_status(std::vector<MotorStatus> & status)
 
 bool CybergearController::get_motor_status(uint8_t id, MotorStatus & status)
 {
-  process_packet();
+  for (int i=0; i < 100; i++){
+    process_packet();
+    delay(1);
+  }
   if (!check_motor_id(id)) return false;
   status = drivers_[id].get_motor_status();
   status.position = sw_configs_[id].direction * status.position + sw_configs_[id].position_offset;

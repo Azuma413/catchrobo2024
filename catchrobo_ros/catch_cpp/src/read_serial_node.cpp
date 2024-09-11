@@ -15,17 +15,19 @@ state_message
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include "std_msgs/msg/int8.hpp"
+#include "std_msgs/msg/string.hpp"
 #include <thread>
 
 using namespace std::chrono_literals;
 
 const int BAUDRATE = 115200;
-const std::string SERIAL_PORT = "/dev/ttyUSB0";
+const std::string SERIAL_PORT = "/dev/ESP-0";
 
 class ReadSerialNode : public rclcpp::Node {
 private:
     rclcpp::TimerBase::SharedPtr timer;
     rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr pub;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr string_pub;
     boost::asio::io_service io;
     boost::asio::serial_port port;
     boost::asio::streambuf buffer;
@@ -58,7 +60,11 @@ private:
                     std::cerr << "Out of range: " << e.what() << std::endl;
                 }
             }else{
-                std::cout << line << std::endl;
+                auto pub_data = std_msgs::msg::String();
+                pub_data.data = line;
+                string_pub->publish(pub_data);
+                RCLCPP_DEBUG(this->get_logger(), line.c_str());
+                // std::cout << line << std::endl;
             }
             start_read();
         }
@@ -73,6 +79,7 @@ public:
         num.data = 1;
         port.set_option(boost::asio::serial_port_base::baud_rate(BAUDRATE));
         pub = this->create_publisher<std_msgs::msg::Int8>("state_message", 10);
+        string_pub = this->create_publisher<std_msgs::msg::String>("debug_string", 10);
         start_read();
         io_thread = std::thread([this]() { io.run(); });
         timer = this->create_wall_timer(100ms, timer_callback);

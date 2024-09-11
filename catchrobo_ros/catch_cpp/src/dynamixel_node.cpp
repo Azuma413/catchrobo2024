@@ -39,7 +39,7 @@ const std::vector<FingerConfig> finger_config = {
     // {9, -179*M_PI/180, 179*M_PI/180, 0.0, false}
 };
 const FingerConfig wrist_config = {10, 0.0, 2*M_PI, 0.0, false};
-const char* DEVICE = "/dev/ttyUSB0";
+const char* DEVICE = "/dev/U2D2-0";
 const uint32_t BAUDRATE = 115200;
 const float load_limit = 70.0; // %
 // ********************************************************************************************************************

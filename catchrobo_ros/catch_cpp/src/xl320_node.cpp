@@ -35,7 +35,7 @@ const std::vector<FingerConfig> finger_config = {
     {15, -149*M_PI/180, 149*M_PI/180, 0.0, false},
     // {16, -149*M_PI/180, 149*M_PI/180, 0.0, false},
 };
-const char* DEVICE = "/dev/ttyUSB0";
+const char* DEVICE = "/dev/U2D2-1";
 const uint32_t BAUDRATE = 1000000;
 const float load_limit = 90.0; // %
 // ********************************************************************************************************************

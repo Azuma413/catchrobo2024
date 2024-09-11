@@ -2,7 +2,7 @@
 #include <WiFiUdp.h>
 #include "freertos/task.h"
 
-const int port = 40003;
+const int port = 12345;
 const int data_size = 5;
 
 const IPAddress ip(192, 168, 0, 77);
