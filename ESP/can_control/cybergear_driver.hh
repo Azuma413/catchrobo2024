@@ -4,23 +4,6 @@
 #include "cybergear_can_interface.hpp"
 #include "cybergear_driver_defs.hh"
 
-/**
- * @brief MotorStatus class
- */
-struct MotorStatus
-{
-  unsigned long stamp_usec;  //< timestamp
-  uint8_t motor_id;          //!< motor id
-  float position;            //!< encoder position (-4pi to 4pi)
-  float velocity;            //!< motor velocity (-30rad/s to 30rad/s)
-  float effort;              //!< motor effort (-12Nm - 12Nm)
-  float temperature;         //!< temperature
-  uint16_t raw_position;     //!< raw position (for sync data)
-  uint16_t raw_velocity;     //!< raw velocity (for sync data)
-  uint16_t raw_effort;       //!< raw effort (for sync data)
-  uint16_t raw_temperature;  //!< raw temperature (for sync data)
-};
-
 struct MotorFault
 {
   bool encoder_not_calibrated;

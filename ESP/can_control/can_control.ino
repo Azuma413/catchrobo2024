@@ -99,7 +99,9 @@ bool calib_motors(){
     }
     delay(500);
     controller.send_position_command(cyber_ids[0], 0); //-70*M_PI/45);
+    // controller.send_position_command(cyber_ids[0], -70*M_PI/45);
     controller.send_position_command(cyber_ids[1], 0); //20*M_PI/90);
+    // controller.send_position_command(cyber_ids[1], 20*M_PI/90);
     controller.get_motor_status(motor_status);
     Serial.printf("cyber1(%f), cyber2(%f)\n", motor_status[0].position*45/M_PI, motor_status[1].position*90/M_PI);
     Serial.println("calib finish");
@@ -142,7 +144,7 @@ void loop() {
     mode = udp.get_mode();
     if (mode == 0) { // 接続テスト
     
-        // Serial.println(2);
+        Serial.println(2);
     
         m3508_1.set_speed(0);
         // controller.send_position_command(cyber_ids[0], -70*M_PI/45);
