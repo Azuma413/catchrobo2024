@@ -61,6 +61,7 @@ struct MotorParameter
 class CybergearDriver
 {
 public:
+  bool update_data;
   /**
    * @brief Construct a new Cybergear Driver object
    */

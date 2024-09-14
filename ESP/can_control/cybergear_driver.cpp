@@ -261,19 +261,19 @@ bool CybergearDriver::receive_motor_data()
 
   CG_DEBUG_FUNC
   uint8_t receive_can_id = id & 0xff;
-  // Serial.printf("Receive can id: %d\nMasterable can id: %d\n", receive_can_id, master_can_id_);
+  Serial.printf("receive %i\n", receive_can_id);
   if (receive_can_id != master_can_id_) {
     return false;
   }
   uint8_t motor_can_id = (id & 0xff00) >> 8;
-  // Serial.printf("Receive can id: %d\nTarget can id: %d\n", motor_can_id, target_can_id_);
+  Serial.printf("motor %i = %i?\n", motor_can_id, target_can_id_);
   if (motor_can_id != target_can_id_) {
     return false;
   }
 
   // check packet type
   uint8_t packet_type = (id & 0x3F000000) >> 24;
-  // Serial.printf("Packet type: %d\n", packet_type);
+  Serial.printf("packet type %i", packet_type);
   if (packet_type == CMD_RESPONSE) {
     process_motor_packet(receive_buffer_, len);
   } else if (packet_type == CMD_RAM_READ) {
@@ -301,7 +301,7 @@ void CybergearDriver::process_motor_packet(const uint8_t * data, unsigned long l
   motor_status_.velocity = uint_to_float(motor_status_.raw_velocity, V_MIN, V_MAX);
   motor_status_.effort = uint_to_float(motor_status_.raw_effort, T_MIN, T_MAX);
   motor_status_.temperature = motor_status_.raw_temperature;
-  // Serial.printf("Motor ID: %d\nMotor position: %f\n", motor_status_.motor_id, motor_status_.position);
+  update_data = true;
 }
 
 void CybergearDriver::process_read_parameter_packet(const uint8_t * data, unsigned long len)

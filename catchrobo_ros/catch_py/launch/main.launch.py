@@ -49,19 +49,24 @@ def generate_launch_description():
         #     namespace=namespace, # ノードの名前空間
         #     output='log' # log:ログファイルに出力, screen:コンソールに出力, none
         # ),
-        Node(
-            package="catch_cpp",
-            executable="dynamixel_node",
-            output="screen",
-        ),
+        # Node(
+        #     package="catch_cpp",
+        #     executable="dynamixel_node",
+        #     output="screen",
+        # ),
         Node(
             package="catch_cpp",
             executable="read_serial_node",
             output="screen",
         ),
+        # Node(
+        #     package="catch_cpp",
+        #     executable="xl320_node",
+        #     output="screen",
+        # ),
         Node(
             package="catch_cpp",
-            executable="xl320_node",
+            executable="wrist_node",
             output="screen",
         ),
     ])

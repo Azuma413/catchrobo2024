@@ -160,7 +160,6 @@ class MOTOR{
         MOTOR(int id){
             //ID超过范围
             if(id<1 || id>8){
-                Serial.printf("ID=%d超过范围\n",id);
                 return;
             }
             ID=id;
@@ -174,7 +173,6 @@ class MOTOR{
         MOTOR(int id,pid_param location_pid,pid_param speed_pid){
             //ID超过范围
             if(id<1 || id>8){
-                Serial.printf("ID=%d超过范围\n",id);
                 return;
             }
             ID=id;
@@ -408,15 +406,11 @@ class M3508_P19:public MOTOR{
         }
         void set_angle(float angle,int8_t dir =0){//dir:0为最近方向,1为正方向,-1为负方向
             angle-=angle_offset;
-            // reset_location(data->angle);
             float now_angle = get_adc_deg();
-            // dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
-            // angle=fmodf(angle,360.f);
-            // angle=angle>=0?angle:360.f+angle;
             float delta = angle - now_angle;
-            // while(dir*delta<0){//当dir不为0时向指定方向绕圈
-            //     delta+=dir*360;
-            // }
+
+            // Serial.println(delta);
+
             if(abs(delta)>180&&dir==0){//找到最近方向
                 delta+=delta>0?-360:360;
             }
@@ -424,10 +418,7 @@ class M3508_P19:public MOTOR{
             prior_delta = delta;
             delta_int += delta;
             float pid = delta*location_pid_contraler.Kp + delta_diff*location_pid_contraler.Kd + delta_int*location_pid_contraler.Ki;
-            // Serial.printf("delta(%f) delta_diff(%f) delta_int(%f) pid(%f)\n", delta*location_pid_contraler.Kp, delta_diff*location_pid_contraler.Kd, delta_int*location_pid_contraler.Ki, pid);
             set_speed(max(min_speed, min(max_speed, pid)));
-            // Serial.printf("angle: %f\n", data->get_angle());
-            // set_location(data->angle+delta*8192.f/360.f);
         }
 
         float get_curunt_ma(){
@@ -442,8 +433,8 @@ class M3508_P19:public MOTOR{
         float prior_delta = 0;
         float delta_diff = 0;
         float delta_int = 0;
-        float max_speed = 500;
-        float min_speed = -500;
+        float max_speed = 300;
+        float min_speed = -300;
 };
 
 
@@ -453,7 +444,6 @@ class GM6020:public MOTOR{
     public:
         GM6020(int id){
             if(id<1 || id>7){
-                Serial.printf("GM6020 ID=%d超过范围\n",id);
                 return;
             }
             data=motors[id+3];
@@ -467,7 +457,6 @@ class GM6020:public MOTOR{
         };
         GM6020(int id,pid_param location_pid,pid_param speed_pid){
             if(id<1 || id>7){
-                Serial.printf("GM6020 ID=%d超过范围\n",id);
                 return;
             }
             data=motors[id+3];
@@ -502,7 +491,7 @@ class GM6020:public MOTOR{
             if(abs(delta)>180&&dir==0){//找到最近方向
                 delta+=delta>0?-360:360;
             }
-            Serial.println(delta);
+            // Serial.println(delta);
             set_location(data->angle+delta*8192.f/360.f);
         }
         //设置角度偏移量，范围：-180_180，单位：度
@@ -618,8 +607,9 @@ void feedback_update_task(void* n){
             motors[rx_message.identifier-0x201]->update_data(rx_message);
         }else if(func_map.find(rx_message.identifier)!=func_map.end()){
             func_map[rx_message.identifier](&rx_message);
+            Serial.printf("Receive CAN ID:%d\n",(rx_message.identifier & 0xff00) >> 8);
         }else{
-            // Serial.printf("Unknown CAN ID:%d\n",rx_message.identifier);
+            Serial.printf("Unknown CAN ID:%d\n",rx_message.identifier);
         }
     }
 }
@@ -630,7 +620,6 @@ void update_current_task(void* p){
     //电流控制频率
     int frc=*(int*) p;
     while(1){
-        // Serial.println("update task");
         //如果启用了(C620 C610)1-4号任意一个电机就更新电流
         if(motor_201.enable || motor_202.enable || motor_203.enable || motor_204.enable){
             twai_message_t tx_msg;
