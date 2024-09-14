@@ -300,14 +300,10 @@ bool CybergearController::set_mech_position_to_zero(uint8_t id)
 
 bool CybergearController::get_motor_status(std::vector<MotorStatus> & status)
 {
-  // for (int i=0; i < 100; i++){
-  //   process_packet();
-  //   delay(1);
-  // }
   status.clear();
   for (uint8_t idx = 0; idx < motor_ids_.size(); ++idx) {
     if (drivers_.find(motor_ids_[idx]) == drivers_.end()) return false;
-    MotorStatus mot; // = drivers_[motor_ids_[idx]].get_motor_status();
+    MotorStatus mot;
     get_motor_status(motor_ids_[idx], mot);
     status.push_back(mot);
   }
@@ -319,12 +315,9 @@ bool CybergearController::get_motor_status(uint8_t id, MotorStatus & status)
   if (!check_motor_id(id)) return false;
   drivers_[id].update_data = false;
   Serial.printf("update status id(%i)\n", id);
-  while(!drivers_[id].update_data){
-    // IDのデータを更新
-    drivers_[id].receive_motor_data();
-    delay(100);
-  }
-  Serial.printf("id(%i): OK\n", id);
+  drivers_[id].receive_motor_data();
+  Serial.printf("id(%i)", id);
+  Serial.println(drivers_[id].update_data);
   status = drivers_[id].get_motor_status();
   status.position = sw_configs_[id].direction * status.position + sw_configs_[id].position_offset;
   status.velocity *= sw_configs_[id].direction;
