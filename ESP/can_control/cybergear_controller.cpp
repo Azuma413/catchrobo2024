@@ -313,12 +313,13 @@ bool CybergearController::get_motor_status(std::vector<MotorStatus> & status)
 bool CybergearController::get_motor_status(uint8_t id, MotorStatus & status)
 {
   if (!check_motor_id(id)) return false;
-  drivers_[id].update_data = false;
-  Serial.printf("update status id(%i)\n", id);
-  drivers_[id].receive_motor_data();
-  Serial.printf("id(%i)", id);
-  Serial.println(drivers_[id].update_data);
-  status = drivers_[id].get_motor_status();
+  // drivers_[id].update_data = false;
+  // Serial.printf("update status id(%i)\n", id);
+  // drivers_[id].receive_motor_data();
+  // Serial.printf("id(%i)", id);
+  // Serial.println(drivers_[id].update_data);
+  // status = drivers_[id].get_motor_status();
+  status = can_->motor_status[id - 1];
   status.position = sw_configs_[id].direction * status.position + sw_configs_[id].position_offset;
   status.velocity *= sw_configs_[id].direction;
   status.effort *= sw_configs_[id].direction;
