@@ -11,8 +11,10 @@ esp_adc_cal_characteristics_t *adc_chars_1;
 uint8_t adc1_pin = 34;
 std::vector<uint32_t> raw_data;
 int window_size = 8;
+float offset = 0;
 
-void adc_setup(){
+void adc_setup(float offset_){
+	offset = offset_;
     pinMode(adc1_pin, ANALOG);
 	adc1_config_width(width_bit);
 	adc1_config_channel_atten(channel_1, atten);
@@ -26,7 +28,7 @@ void adc_setup(){
 }
 
 float vol2deg(uint32_t vol){
-	return (float)(vol-142)/(3176.0 - 142.0)*360.0;
+	return (float)(vol-142)/(3176.0 - 142.0)*308.5714;//360.0;
 }
 
 float get_adc_deg(){
@@ -43,6 +45,6 @@ float get_adc_deg(){
 	}
 	raw_1 = sum / raw_data.size();
     uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_1, adc_chars_1);
-    return vol2deg(voltage);
+    return vol2deg(voltage) - offset;
 }
 

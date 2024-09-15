@@ -4,11 +4,11 @@
 #include "cybergear_can_interface.hpp"
 
 // テスト時の設定
-const char* ssid = "NotFreeWiFi";
-const char* password = "924865hirekatsu";
+// const char* ssid = "NotFreeWiFi";
+// const char* password = "924865hirekatsu";
 // 本番設定
-// const char* ssid = "Kikaiken_WiFi";
-// const char* password = "Kikaiken_WiFi";
+const char* ssid = "Kikaiken_WiFi";
+const char* password = "Kikaiken_WiFi";
 
 // UDP通信設定
 UDPRead udp(ssid, password);
@@ -111,7 +111,7 @@ bool calib_motors(){
 void setup() {
     Serial.begin(115200);
     while(!Serial);
-    adc_setup();
+    adc_setup(-10);
     udp.init();
     can_init(RX_PIN, TX_PIN, 1000);
     controller.init(cyber_ids, sw_configs, MODE_POSITION, &interface, 0);
