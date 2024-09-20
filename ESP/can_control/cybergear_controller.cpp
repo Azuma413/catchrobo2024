@@ -313,12 +313,6 @@ bool CybergearController::get_motor_status(std::vector<MotorStatus> & status)
 bool CybergearController::get_motor_status(uint8_t id, MotorStatus & status)
 {
   if (!check_motor_id(id)) return false;
-  // drivers_[id].update_data = false;
-  // Serial.printf("update status id(%i)\n", id);
-  // drivers_[id].receive_motor_data();
-  // Serial.printf("id(%i)", id);
-  // Serial.println(drivers_[id].update_data);
-  // status = drivers_[id].get_motor_status();
   status = can_->motor_status[id - 1];
   status.position = sw_configs_[id].direction * status.position + sw_configs_[id].position_offset;
   status.velocity *= sw_configs_[id].direction;
@@ -330,62 +324,6 @@ bool CybergearController::get_software_config(uint8_t id, CybergearSoftwareConfi
 {
   if (!check_motor_id(id)) return false;
   config = sw_configs_[id];
-  return true;
-}
-
-bool CybergearController::process_packet()
-{
-  bool is_updated = false;
-  for (uint8_t idx = 0; idx < motor_ids_.size(); ++idx) {
-    if (drivers_.find(motor_ids_[idx]) == drivers_.end()) return false;
-    if (drivers_[motor_ids_[idx]].receive_motor_data()) {
-      motor_update_flag_[motor_ids_[idx]] = true;
-      is_updated = true;
-      recv_count_++;
-    }
-  }
-  // while (can_->available()) {
-  //   unsigned long id;
-  //   uint8_t len;
-  //   if (!can_->read_message(id, receive_buffer_, len)) {
-  //     continue;
-  //   }
-
-  //   // if id is not mine
-  //   uint8_t receive_can_id = id & 0xff;
-  //   if (receive_can_id != master_can_id_) {
-  //     CG_DEBUG_PRINTF(
-  //       "Invalid master can id. Expected=[0x%02x] Actual=[0x%02x] Raw=[%x]\n", master_can_id_,
-  //       receive_can_id, id);
-  //     continue;
-  //   }
-
-  //   uint8_t motor_can_id = (id & 0xff00) >> 8;
-  //   if (drivers_.find(motor_can_id) == drivers_.end()) {
-  //     continue;
-  //   }
-
-  //   // parse packet --------------
-  //   if (drivers_[motor_can_id].update_motor_status(id, receive_buffer_, len)) {
-  //     motor_update_flag_[motor_can_id] = true;
-  //     is_updated = true;
-  //     recv_count_++;
-  //   }
-  // }
-
-  return is_updated;
-}
-
-bool CybergearController::check_update_flag(uint8_t id)
-{
-  if (!check_motor_id(id)) return false;
-  return motor_update_flag_[id];
-}
-
-bool CybergearController::reset_update_flag(uint8_t id)
-{
-  if (!check_motor_id(id)) return false;
-  motor_update_flag_[id] = false;
   return true;
 }
 

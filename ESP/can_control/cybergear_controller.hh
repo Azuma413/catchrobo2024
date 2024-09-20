@@ -349,16 +349,6 @@ public:
    */
   bool get_software_config(uint8_t id, CybergearSoftwareConfig & config);
   bool set_software_config(uint8_t id, const CybergearSoftwareConfig & config);
-  /**
-   * @brief Process can packet
-   *
-   * @return true   success to update data
-   * @return false  failed to update data
-   */
-  bool process_packet();
-
-  bool check_update_flag(uint8_t id);
-  bool reset_update_flag(uint8_t id);
   std::vector<uint8_t> motor_ids() const;
 
   unsigned long send_count() const;

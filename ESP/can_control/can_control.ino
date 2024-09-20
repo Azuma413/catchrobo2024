@@ -140,17 +140,18 @@ void setup() {
 std::vector<float> target_angle = {0, 0, 0, 0, 0};
 uint8_t mode;
 void loop() {
-    // Serial.println(get_adc_deg());
+    controller.get_motor_status(motor_status);
+    Serial.printf("@%f, %f, %f, %f, %f\n", motor_status[0].position*45/M_PI, motor_status[1].position*90/M_PI, gm6020_1.get_angle(), gm6020_2.get_angle(), get_adc_deg());
     mode = udp.get_mode();
-    if (mode == 0) { // 接続テスト
-    
+    if (mode == 0) { // 接続テスト　アクチュエータの位置を初期位置に戻す
         Serial.println(2);
-    
+        gm6020_1.set_angle(210);
+        gm6020_2.set_angle(260);
+        controller.send_position_command(cyber_ids[0], 0);
+        controller.send_position_command(cyber_ids[1], 0);    
         m3508_1.set_speed(0);
-        // controller.send_position_command(cyber_ids[0], -70*M_PI/45);
-        // controller.send_position_command(cyber_ids[1], 20*M_PI/90);
     }
-    else if (mode == 1) { // 位置制御
+    else if (mode == 1) { // 位置制御　追従する
         float target = 0;
         Serial.println(3);
         udp.get_data(target_angle); // degree
@@ -177,7 +178,7 @@ void loop() {
         if (target < 0) target += 360;
         m3508_1.set_angle(target); // 台座 正面が180、反時計回り
     }
-    else if (mode == 2) { // サスペンド
+    else if (mode == 2) { // サスペンド　その場で停止する
         Serial.println(4);
         m3508_1.set_speed(0);
     }else{
