@@ -16,13 +16,11 @@ state_message
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include "std_msgs/msg/int8.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "geometry_msgs/msg/twist.hpp"
 #include <thread>
 
 using namespace std::chrono_literals;
 using Int8 = std_msgs::msg::Int8;
 using String = std_msgs::msg::String;
-using Twist = geometry_msgs::msg::Twist;
 
 const int BAUDRATE = 115200;
 const std::string SERIAL_PORT = "/dev/ESP-0";
@@ -32,7 +30,6 @@ private:
     rclcpp::TimerBase::SharedPtr timer;
     rclcpp::Publisher<Int8>::SharedPtr pub;
     rclcpp::Publisher<String>::SharedPtr string_pub;
-    rclcpp::Publisher<Twist>::SharedPtr twist_pub;
     boost::asio::io_service io;
     boost::asio::serial_port port;
     boost::asio::streambuf buffer;
@@ -55,7 +52,6 @@ private:
             // \nや\rを削除
             line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
             line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-            // @から始まる場合はフィードバック情報なので、それを避ける
             // lineが数字の場合
             if(std::all_of(line.begin(), line.end(), ::isdigit)){
                 try {

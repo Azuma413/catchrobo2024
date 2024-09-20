@@ -1,6 +1,6 @@
 #include "DJIMotorCtrlESP.hpp"
 #include "cybergear_controller.hh"
-#include "udp_read.hpp"
+#include "udp_read_write.hpp"
 #include "cybergear_can_interface.hpp"
 
 // テスト時の設定
@@ -11,7 +11,7 @@ const char* ssid = "Kikaiken_WiFi";
 const char* password = "Kikaiken_WiFi";
 
 // UDP通信設定
-UDPRead udp(ssid, password);
+UDPReadWrite udp(ssid, password);
 
 // CAN settings
 const uint8_t RX_PIN = 5;
@@ -138,17 +138,18 @@ void setup() {
 }
 
 std::vector<float> target_angle = {0, 0, 0, 0, 0};
+std::vector<float> current_angle = {0, 0, 0, 0, 0};
 uint8_t mode;
 void loop() {
-    controller.get_motor_status(motor_status);
-    Serial.printf("@%f, %f, %f, %f, %f\n", motor_status[0].position*45/M_PI, motor_status[1].position*90/M_PI, gm6020_1.get_angle(), gm6020_2.get_angle(), get_adc_deg());
     mode = udp.get_mode();
+    get_motor_angle(current_angle);
+    udp.set_data(current_angle);
     if (mode == 0) { // 接続テスト　アクチュエータの位置を初期位置に戻す
         Serial.println(2);
         gm6020_1.set_angle(210);
         gm6020_2.set_angle(260);
         controller.send_position_command(cyber_ids[0], 0);
-        controller.send_position_command(cyber_ids[1], 0);    
+        controller.send_position_command(cyber_ids[1], 0);
         m3508_1.set_speed(0);
     }
     else if (mode == 1) { // 位置制御　追従する
@@ -157,26 +158,7 @@ void loop() {
         udp.get_data(target_angle); // degree
         // target_angleを表示
         // Serial.printf("target_angle: %f, %f, %f, %f, %f\n", target_angle[0], target_angle[1], target_angle[2], target_angle[3], target_angle[4]);
-        // id1 cyber1 第二関節
-        target = (target_angle[0] - 160)*4; // 1/4倍減速
-        // target = std::min(-720.0f, std::max(0.0f, target));
-        controller.send_position_command(cyber_ids[0], target*M_PI/180);
-        // id2 cyber2 第一関節
-        target = (target_angle[1] + 20)*2; // 1/2倍減速
-        // target = std::min(240.0f, std::max(0.0f, target));
-        controller.send_position_command(cyber_ids[1], target*M_PI/180);
-        // id3 gm1 id3 腕
-        target = -target_angle[2] + 30;
-        if (target < 0) target += 360;
-        gm6020_1.set_angle(target); // 210
-        // id4 gm2 id4 手首
-        target = target_angle[3] + 80; // 260~180~0~300 tumari 280 ni genten
-        if (target < 0) target += 360;
-        gm6020_2.set_angle(target);
-        // id5 m3508 台座
-        target = target_angle[4];
-        if (target < 0) target += 360;
-        m3508_1.set_angle(target); // 台座 正面が180、反時計回り
+        set_motor_angle(target_angle);
     }
     else if (mode == 2) { // サスペンド　その場で停止する
         Serial.println(4);
@@ -185,4 +167,47 @@ void loop() {
         m3508_1.set_speed(0);
     }
     delay(10);
+}
+
+void set_motor_angle(const std::vector<float>& angle){
+    float target = 0;
+    // id1 cyber1 第二関節
+    target = (angle[0] - 160)*4; // 1/4倍減速
+    controller.send_position_command(cyber_ids[0], target*M_PI/180);
+    // id2 cyber2 第一関節
+    target = (angle[1] + 20)*2; // 1/2倍減速
+    controller.send_position_command(cyber_ids[1], target*M_PI/180);
+    // id3 gm1 id3 腕
+    target = -angle[2] + 30;
+    if (target < 0) target += 360;
+    gm6020_1.set_angle(target); // 210
+    // id4 gm2 id4 手首
+    target = angle[3] + 80; // 260~180~0~300 tumari 280 ni genten
+    if (target < 0) target += 360;
+    gm6020_2.set_angle(target);
+    // id5 m3508 台座
+    target = angle[4];
+    if (target < 0) target += 360;
+    m3508_1.set_angle(target); // 台座 正面が180、反時計回り
+}
+
+void get_motor_angle(std::vector<float>& angle){
+    float current = 0;
+    // id1 cyber1 第二関節
+    controller.get_motor_status(motor_status);
+    angle[0] = motor_status[0].position*45/M_PI + 160;
+    // id2 cyber2 第一関節
+    angle[1] = motor_status[1].position*90/M_PI - 20;
+    // id3 gm1 id3 腕
+    current = gm6020_1.get_angle();
+    if (current > 180) current -= 360;
+    angle[2] = -current + 30;
+    // id4 gm2 id4 手首
+    current = gm6020_2.get_angle();
+    if (current > 0) current -= 360;
+    angle[3] = current - 80;
+    // id5 m3508 台座
+    current = get_adc_deg();
+    if (current > 180) current -= 360;
+    angle[4] = current;
 }
