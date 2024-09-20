@@ -362,17 +362,21 @@ class GM6020:public MOTOR{
         void set_angle(float angle,int8_t dir =0){
             angle-=angle_offset;
             reset_location(data->angle);
-            float now_angle = get_angle();
-            dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
-            angle=fmodf(angle,360.f);
-            angle=angle>=0?angle:360.f+angle;
-            float delta = angle - now_angle;
-            while(dir*delta<0){
-                delta+=dir*360;
-            }
-            if(abs(delta)>180&&dir==0){
-                delta+=delta>0?-360:360;
-            }
+            float now_angle = get_angle(); // 0~360
+            // angleを0~360に変換
+            angle=fmodf(angle,360.f); // -360~360
+            angle=angle>=0?angle:360.f+angle; // 0~360
+            float delta = angle - now_angle; // これで常に0~360の範囲で角度を取るようになるはず
+            // dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
+            // angle=fmodf(angle,360.f);
+            // angle=angle>=0?angle:360.f+angle;
+            // float delta = angle - now_angle;
+            // while(dir*delta<0){
+            //     delta+=dir*360;
+            // }
+            // if(abs(delta)>180&&dir==0){
+            //     delta+=delta>0?-360:360;
+            // }
             set_location(data->angle+delta*8192.f/360.f);
         }
         void set_angle_offset(float offset){
