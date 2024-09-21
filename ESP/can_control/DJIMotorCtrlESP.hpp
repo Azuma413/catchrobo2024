@@ -363,10 +363,14 @@ class GM6020:public MOTOR{
             angle-=angle_offset;
             reset_location(data->angle);
             float now_angle = get_angle(); // 0~360
+
             // angleを0~360に変換
             angle=fmodf(angle,360.f); // -360~360
             angle=angle>=0?angle:360.f+angle; // 0~360
+            if (angle <= 20) angle = 20;
+            if (angle >= 340) angle = 340;
             float delta = angle - now_angle; // これで常に0~360の範囲で角度を取るようになるはず
+
             // dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
             // angle=fmodf(angle,360.f);
             // angle=angle>=0?angle:360.f+angle;
@@ -377,6 +381,10 @@ class GM6020:public MOTOR{
             // if(abs(delta)>180&&dir==0){
             //     delta+=delta>0?-360:360;
             // }
+
+            // float tmp = data->angle*360.f/8192.f + delta;
+            // Serial.print(",");
+            // Serial.println(tmp);
             set_location(data->angle+delta*8192.f/360.f);
         }
         void set_angle_offset(float offset){

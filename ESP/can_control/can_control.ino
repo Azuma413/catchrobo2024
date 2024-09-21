@@ -26,13 +26,11 @@ const int m3508_1_id = 5;
 pid_param m3508_speed(    5,      1,      0.01,   1,      10000);
 pid_param m3508_location( 5,    0.0,    10.0,   2000,   3000);
 // pid_param m3508_location( 5,    0.00001,    10.0,   2000,   3000);
-pid_param gm6020_speed(   10,     0,      0.01,      1,      16384);
-pid_param gm6020_location1(2.0,    0.001,    0.05,   5,      350);
-pid_param gm6020_location2(1.0,    0.1,    0.03,   5,      350);
-            // pid_param speed_pid_parmater(10,0,0,1,16384);
-            // pid_param location_pid_parmater(0.2,0.1,0,5,350);
-            // pid_param gm6020_speed(   10,     0,      0,      1,      16384);
-            // pid_param gm6020_location(1.0,    0.1,    0.03,   5,      350);
+// pid_param gm6020_speed(   10,     0,      0.01,      1,      16384);
+pid_param gm6020_speed(   20,     0,      0.001,      1,      16384);
+pid_param gm6020_location1(0.05,    0.05,    0.02,   5,      350);
+// pid_param gm6020_location2(1.0,    0.1,    0.03,   5,      350);
+pid_param gm6020_location2(0.1,    0.03,    0.02,   5,      350);
 
 M3508_P19 m3508_1(m3508_1_id, m3508_location, m3508_speed);
 GM6020 gm6020_1(gm6020_1_id, gm6020_location1, gm6020_speed);
@@ -108,10 +106,14 @@ bool calib_motors(){
     return true;
 }
 
+/*
+data: 'assert failed: twai_handle_tx_buffer_frame twai.c:189 (p_twai_obj->tx_msg_count >= 0)'
+*/
+
 void setup() {
     Serial.begin(115200);
     while(!Serial);
-    adc_setup(-10);
+    adc_setup(93); // -10 hantokei +
     udp.init();
     can_init(RX_PIN, TX_PIN, 1000);
     controller.init(cyber_ids, sw_configs, MODE_POSITION, &interface, 0);
@@ -153,11 +155,10 @@ void loop() {
         m3508_1.set_speed(0);
     }
     else if (mode == 1) { // 位置制御　追従する
-        float target = 0;
         Serial.println(3);
         udp.get_data(target_angle); // degree
         // target_angleを表示
-        // Serial.printf("target_angle: %f, %f, %f, %f, %f\n", target_angle[0], target_angle[1], target_angle[2], target_angle[3], target_angle[4]);
+        Serial.printf("target_angle: %f, %f, %f, %f, %f\n", target_angle[0], target_angle[1], target_angle[2], target_angle[3], target_angle[4]);
         set_motor_angle(target_angle);
     }
     else if (mode == 2) { // サスペンド　その場で停止する
