@@ -14,6 +14,9 @@ class MOTOR;
 class M3508_P19;
 class GM6020;
 
+// cybergear用のtwai_message_t サイズ2
+std::vector<twai_message_t> cybergear_messages(2);
+
 void can_init(uint8_t TX_PIN=8,uint8_t RX_PIN=18, int current_update_hz=200);
 void location_contral_task(void* n);
 void speed_contral_task(void* n);
@@ -537,6 +540,9 @@ void update_current_task(void* p){
             tx_msg.data[7] = 0;
             twai_transmit(&tx_msg,portMAX_DELAY);
         }
+        // send cybergear can message
+        twai_transmit(&cybergear_messages[0],portMAX_DELAY);
+        twai_transmit(&cybergear_messages[1],portMAX_DELAY);
         delay(1000/frc);
     }
 }

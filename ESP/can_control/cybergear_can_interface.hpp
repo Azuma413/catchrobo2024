@@ -8,6 +8,7 @@
 #include "cybergear_driver_defs.hh"
 #include "driver/twai.h"
 #include <Arduino.h>
+#include "DJIMotorCtrlESP.hpp"
 
 /**
  * @brief MotorStatus class
@@ -31,9 +32,7 @@ class CybergearCanInterface
 public:
   std::vector<MotorStatus> motor_status = std::vector<MotorStatus>(2);
   CybergearCanInterface(){};  // コンストラクタ
-  
   virtual ~CybergearCanInterface(){};  // デストラクタ
-
   virtual bool send_message(uint32_t id, const uint8_t * data, uint8_t len, bool ext)
   {
     CG_DEBUG_FUNC
@@ -43,10 +42,11 @@ public:
     message.rtr = 0;
     message.data_length_code = len;
     memcpy(message.data, data, len);
-    if (twai_transmit(&message, pdMS_TO_TICKS(10)) != ESP_OK) {
-      return false;
+    if(id == motor_status[0].motor_id){
+      cybergear_messages[0] = message;
+    }else if(id == motor_status[1].motor_id){
+      cybergear_messages[1] = message;
     }
-
     return true;
   }
 
