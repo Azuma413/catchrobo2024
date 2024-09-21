@@ -167,11 +167,15 @@ void loop() {
     }else{
         m3508_1.set_speed(0);
     }
-    delay(10);
+    delay(3);
 }
+
+// 1000/3Hz 180deg/s
+float delta = 180*3/1000;
 
 void set_motor_angle(const std::vector<float>& angle){
     float target = 0;
+    float current = 0;
     // id1 cyber1 第二関節
     target = (angle[0] - 160)*4; // 1/4倍減速
     controller.send_position_command(cyber_ids[0], target*M_PI/180);
@@ -181,10 +185,22 @@ void set_motor_angle(const std::vector<float>& angle){
     // id3 gm1 id3 腕
     target = -angle[2] + 30;
     if (target < 0) target += 360;
+    current = gm6020_1.get_angle();
+    if (target > current + delta) {
+        target = current + delta;
+    } else if (target < current - delta) {
+        target = current - delta;
+    }
     gm6020_1.set_angle(target); // 210
     // id4 gm2 id4 手首
     target = angle[3] + 80; // 260~180~0~300 tumari 280 ni genten
     if (target < 0) target += 360;
+    current = gm6020_2.get_angle();
+    if (target > current + delta) {
+        target = current + delta;
+    } else if (target < current - delta) {
+        target = current - delta;
+    }
     gm6020_2.set_angle(target);
     // id5 m3508 台座
     target = angle[4];
