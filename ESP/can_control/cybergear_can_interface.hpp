@@ -9,9 +9,6 @@
 #include "driver/twai.h"
 #include <Arduino.h>
 
-// cybergear用のtwai_message_t サイズ2
-extern std::vector<twai_message_t> cybergear_messages;
-extern bool cybergear_transmit_flag;
 /**
  * @brief MotorStatus class
  */
@@ -35,7 +32,7 @@ public:
   std::vector<MotorStatus> motor_status = std::vector<MotorStatus>(2);
   CybergearCanInterface(){};  // コンストラクタ
   virtual ~CybergearCanInterface(){};  // デストラクタ
-  virtual bool send_message(uint32_t id, const uint8_t * data, uint8_t len, bool ext, uint8_t can_id)
+  virtual bool send_message(uint32_t id, const uint8_t * data, uint8_t len, bool ext)
   {
     CG_DEBUG_FUNC
     twai_message_t message;
@@ -44,17 +41,15 @@ public:
     message.rtr = 0;
     message.data_length_code = len;
     memcpy(message.data, data, len);
-    // Serial.printf("id(%d)\n\r", can_id);
-    if(can_id == 1){
-      cybergear_messages[0] = message;
-    }else if(can_id == 2){
-      cybergear_messages[1] = message;
+    esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+    if (ret != ESP_OK){
+        if (ret == ESP_ERROR_TIMEOUT){
+            Serial.println("CAN TX timeout");
+        }else if (ret == ESP_FAIL){
+            Serial.println("CAN TX failed");
+        }
+        return false;
     }
-    if (!cybergear_transmit_flag){
-      delay(3);
-      Serial.println("delay");
-    }
-    cybergear_transmit_flag = false;
     return true;
   }
 

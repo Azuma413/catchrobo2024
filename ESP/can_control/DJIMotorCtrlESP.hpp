@@ -8,10 +8,6 @@
 #include "freertos/task.h"
 #include "PID_CONTROL.hpp"
 #include "adc_read.hpp"
-#include "cybergear_can_interface.hpp"
-
-extern std::vector<twai_message_t> cybergear_messages;
-extern bool cybergear_transmit_flag;
 
 class C600_DATA;
 class MOTOR;
@@ -515,7 +511,14 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_203.set_current&0xff;
             tx_msg.data[6] = motor_204.set_current >> 8;
             tx_msg.data[7] = motor_204.set_current&0xff;
-            twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            if (ret != ESP_OK){
+                if (ret == ESP_ERROR_TIMEOUT){
+                    Serial.println("CAN TX timeout");
+                }else if (ret == ESP_FAIL){
+                    Serial.println("CAN TX failed");
+                }
+            }
         }
         if(motor_205.enable || motor_206.enable || motor_207.enable || motor_208.enable){
             twai_message_t tx_msg;
@@ -531,7 +534,14 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_207.set_current&0xff;
             tx_msg.data[6] = motor_208.set_current >> 8;
             tx_msg.data[7] = motor_208.set_current&0xff;
-            twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            if (ret != ESP_OK){
+                if (ret == ESP_ERROR_TIMEOUT){
+                    Serial.println("CAN TX timeout");
+                }else if (ret == ESP_FAIL){
+                    Serial.println("CAN TX failed");
+                }
+            }
         }
         if((motors[4]->enable&&motors[4]->is_GM6020)||(motors[5]->enable&&motors[5]->is_GM6020)||(motors[6]->enable&&motors[6]->is_GM6020)||(motors[7]->enable&&motors[7]->is_GM6020)){
             twai_message_t tx_msg;
@@ -547,7 +557,14 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_207.set_current&0xff;
             tx_msg.data[6] = motor_208.set_current >> 8;
             tx_msg.data[7] = motor_208.set_current&0xff;
-            twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            if (ret != ESP_OK){
+                if (ret == ESP_ERROR_TIMEOUT){
+                    Serial.println("CAN TX timeout");
+                }else if (ret == ESP_FAIL){
+                    Serial.println("CAN TX failed");
+                }
+            }
         }
         if((motors[8]->enable&&motors[8]->is_GM6020)||(motors[9]->enable&&motors[9]->is_GM6020)||(motors[10]->enable&&motors[10]->is_GM6020)){
             twai_message_t tx_msg;
@@ -563,13 +580,15 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_20B.set_current&0xff;
             tx_msg.data[6] = 0;
             tx_msg.data[7] = 0;
-            twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            if (ret != ESP_OK){
+                if (ret == ESP_ERROR_TIMEOUT){
+                    Serial.println("CAN TX timeout");
+                }else if (ret == ESP_FAIL){
+                    Serial.println("CAN TX failed");
+                }
+            }
         }
-        // send cybergear can message
-        // Serial.printf("transmit\n\r");
-        twai_transmit(&cybergear_messages[0],portMAX_DELAY);
-        twai_transmit(&cybergear_messages[1],portMAX_DELAY);
-        cybergear_transmit_flag = true;
         delay(1000/frc);
     }
 }

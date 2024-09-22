@@ -5,6 +5,7 @@
 
 /*
 data: 'assert failed: twai_handle_tx_buffer_frame twai.c:189 (p_twai_obj->tx_msg_count >= 0)'
+5. 物理的な問題
 */
 
 // テスト時の設定
@@ -46,8 +47,6 @@ CybergearSoftwareConfig config1(cyber_ids[0], CCW, 30, 27, 12, 0, -720*M_PI/180,
 CybergearSoftwareConfig config2(cyber_ids[1], CCW, 30, 27, 12, 240*M_PI/180, 0, CCW, 0);
 std::vector<CybergearSoftwareConfig> sw_configs = {config1, config2};
 std::vector<MotorStatus> motor_status;
-std::vector<twai_message_t> cybergear_messages(2);
-bool cybergear_transmit_flag = false;
 
 bool calib_flag = true; // キャリブレーションフラグ
 
@@ -119,9 +118,9 @@ data: 'assert failed: twai_handle_tx_buffer_frame twai.c:189 (p_twai_obj->tx_msg
 void setup() {
     Serial.begin(115200);
     while(!Serial);
-    adc_setup(93); // -10 hantokei +
+    adc_setup(93); // 反時計回り +
     udp.init();
-    can_init(RX_PIN, TX_PIN, 1000);
+    can_init(RX_PIN, TX_PIN, 500); // 1000
     controller.init(cyber_ids, sw_configs, MODE_POSITION, &interface, 0);
     for(auto id : cyber_ids){
         controller.set_speed_limit(id, 10); // 30
@@ -138,7 +137,7 @@ void setup() {
     gm6020_2.setup();
     controller.enable_motors();
     calib_motors();
-    gm6020_1.set_angle(210); // 挙動が不安定化するくらいなら，やらない方がいい
+    gm6020_1.set_angle(210);
     gm6020_2.set_angle(260);
     Serial.println("setup finish");
 }
@@ -147,6 +146,16 @@ std::vector<float> target_angle = {0, 0, 0, 0, 0};
 std::vector<float> current_angle = {0, 0, 0, 0, 0};
 uint8_t mode;
 void loop() {
+    // CANのバッファの空き確認
+    twai_status_info_t status_info;
+    twai_get_status_info(&status_info);
+    printf("Error passive: %d\n", status_info.error_passive);
+    printf("Bus off: %d\n", status_info.bus_off);
+    printf("TX error counter: %d\n", status_info.tx_error_counter);
+    printf("RX error counter: %d\n", status_info.rx_error_counter);
+    if(status_info.msgs_to_tx >= MAX_TX_QUEUE_SIZE){
+        Serial.println("CAN TX buffer overflow");
+    }
     mode = udp.get_mode();
     get_motor_angle(current_angle);
     udp.set_data(current_angle);
@@ -162,7 +171,7 @@ void loop() {
         Serial.println(3);
         udp.get_data(target_angle); // degree
         // target_angleを表示
-        Serial.printf("target_angle: %f, %f, %f, %f, %f\n", target_angle[0], target_angle[1], target_angle[2], target_angle[3], target_angle[4]);
+        // Serial.printf("target_angle: %f, %f, %f, %f, %f\n", target_angle[0], target_angle[1], target_angle[2], target_angle[3], target_angle[4]);
         set_motor_angle(target_angle);
     }
     else if (mode == 2) { // サスペンド　その場で停止する
@@ -179,7 +188,6 @@ float delta = 180*3/1000;
 
 void set_motor_angle(const std::vector<float>& angle){
     float target = 0;
-    float current = 0;
     // id1 cyber1 第二関節
     target = (angle[0] - 160)*4; // 1/4倍減速
     controller.send_position_command(cyber_ids[0], target*M_PI/180);

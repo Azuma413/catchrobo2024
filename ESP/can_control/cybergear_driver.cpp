@@ -244,7 +244,7 @@ void CybergearDriver::send_command(
   uint8_t can_id, uint8_t cmd_id, uint16_t option, uint8_t len, uint8_t * data)
 {
   uint32_t id = cmd_id << 24 | option << 8 | can_id;
-  can_->send_message(id, data, len, true, can_id);
+  can_->send_message(id, data, len, true);
   delayMicroseconds(wait_response_time_usec_);
   ++send_count_;
 }
