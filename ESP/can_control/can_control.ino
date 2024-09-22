@@ -5,7 +5,7 @@
 
 /*
 data: 'assert failed: twai_handle_tx_buffer_frame twai.c:189 (p_twai_obj->tx_msg_count >= 0)'
-5. 物理的な問題
+物理的な問題かバッファオーバーフローが原因と思われる。
 */
 
 // テスト時の設定
@@ -102,25 +102,19 @@ bool calib_motors(){
     delay(100);
     controller.send_position_command(cyber_ids[0], 0); //-70*M_PI/45);
     delay(10);
-    // controller.send_position_command(cyber_ids[0], -70*M_PI/45);
     controller.send_position_command(cyber_ids[1], 0); //20*M_PI/90);
-    // controller.send_position_command(cyber_ids[1], 20*M_PI/90);
     controller.get_motor_status(motor_status);
     Serial.printf("cyber1(%f), cyber2(%f)\n", motor_status[0].position*45/M_PI, motor_status[1].position*90/M_PI);
     Serial.println("calib finish");
     return true;
 }
 
-/*
-data: 'assert failed: twai_handle_tx_buffer_frame twai.c:189 (p_twai_obj->tx_msg_count >= 0)'
-*/
-
 void setup() {
     Serial.begin(115200);
     while(!Serial);
     adc_setup(93); // 反時計回り +
     udp.init();
-    can_init(RX_PIN, TX_PIN, 500); // 1000
+    can_init(RX_PIN, TX_PIN, 1000); // 1000
     controller.init(cyber_ids, sw_configs, MODE_POSITION, &interface, 0);
     for(auto id : cyber_ids){
         controller.set_speed_limit(id, 10); // 30
@@ -182,9 +176,6 @@ void loop() {
     }
     delay(3);
 }
-
-// 1000/3Hz 180deg/s
-float delta = 180*3/1000;
 
 void set_motor_angle(const std::vector<float>& angle){
     float target = 0;
