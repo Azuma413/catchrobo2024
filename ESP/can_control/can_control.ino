@@ -149,25 +149,13 @@ void loop() {
     // CANのバッファの空き確認
     twai_status_info_t status_info;
     twai_get_status_info(&status_info);
-typedef struct {
-    twai_state_t state;             /**< Current state of TWAI controller (Stopped/Running/Bus-Off/Recovery) */
-    uint32_t msgs_to_tx;            /**< Number of messages queued for transmission or awaiting transmission completion */
-    uint32_t msgs_to_rx;            /**< Number of messages in RX queue waiting to be read */
-    uint32_t tx_error_counter;      /**< Current value of Transmit Error Counter */
-    uint32_t rx_error_counter;      /**< Current value of Receive Error Counter */
-    uint32_t tx_failed_count;       /**< Number of messages that failed transmissions */
-    uint32_t rx_missed_count;       /**< Number of messages that were lost due to a full RX queue (or errata workaround if enabled) */
-    uint32_t rx_overrun_count;      /**< Number of messages that were lost due to a RX FIFO overrun */
-    uint32_t arb_lost_count;        /**< Number of instances arbitration was lost */
-    uint32_t bus_error_count;       /**< Number of instances a bus error has occurred */
-} twai_status_info_t;
-    // printf("Error passive: %d\n", status_info.error_passive);
-    // printf("Bus off: %d\n", status_info.bus_off);
     printf("TX error counter: %d\n", status_info.tx_error_counter);
     printf("RX error counter: %d\n", status_info.rx_error_counter);
-    if(status_info.msgs_to_tx >= MAX_TX_QUEUE_SIZE){
-        Serial.println("CAN TX buffer overflow");
-    }
+    printf("TX failed count: %d\n", status_info.tx_failed_count);
+    printf("RX missed count: %d\n", status_info.rx_missed_count);
+    printf("RX overrun count: %d\n", status_info.rx_overrun_count);
+    printf("Arb lost count: %d\n", status_info.arb_lost_count);
+    printf("Bus error count: %d\n", status_info.bus_error_count);
     mode = udp.get_mode();
     get_motor_angle(current_angle);
     udp.set_data(current_angle);
