@@ -8,8 +8,10 @@
 #include "cybergear_driver_defs.hh"
 #include "driver/twai.h"
 #include <Arduino.h>
-#include "DJIMotorCtrlESP.hpp"
 
+// cybergear用のtwai_message_t サイズ2
+extern std::vector<twai_message_t> cybergear_messages;
+extern bool cybergear_transmit_flag;
 /**
  * @brief MotorStatus class
  */
@@ -33,7 +35,7 @@ public:
   std::vector<MotorStatus> motor_status = std::vector<MotorStatus>(2);
   CybergearCanInterface(){};  // コンストラクタ
   virtual ~CybergearCanInterface(){};  // デストラクタ
-  virtual bool send_message(uint32_t id, const uint8_t * data, uint8_t len, bool ext)
+  virtual bool send_message(uint32_t id, const uint8_t * data, uint8_t len, bool ext, uint8_t can_id)
   {
     CG_DEBUG_FUNC
     twai_message_t message;
@@ -42,11 +44,17 @@ public:
     message.rtr = 0;
     message.data_length_code = len;
     memcpy(message.data, data, len);
-    if(id == motor_status[0].motor_id){
+    // Serial.printf("id(%d)\n\r", can_id);
+    if(can_id == 1){
       cybergear_messages[0] = message;
-    }else if(id == motor_status[1].motor_id){
+    }else if(can_id == 2){
       cybergear_messages[1] = message;
     }
+    if (!cybergear_transmit_flag){
+      delay(3);
+      Serial.println("delay");
+    }
+    cybergear_transmit_flag = false;
     return true;
   }
 

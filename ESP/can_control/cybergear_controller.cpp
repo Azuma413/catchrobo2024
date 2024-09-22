@@ -71,6 +71,7 @@ bool CybergearController::set_run_mode(uint8_t mode)
 {
   for (uint8_t idx = 0; idx < motor_ids_.size(); ++idx) {
     drivers_[motor_ids_[idx]].set_run_mode(mode);
+    delay(10);
   }
   return true;
 }

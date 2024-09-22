@@ -1,3 +1,6 @@
+#ifndef UDP_READ_WRITE_HPP
+#define UDP_READ_WRITE_HPP
+
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include "freertos/task.h"
@@ -77,3 +80,5 @@ private:
         vTaskDelete(NULL);
     }
 };
+
+#endif

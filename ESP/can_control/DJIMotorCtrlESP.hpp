@@ -8,14 +8,15 @@
 #include "freertos/task.h"
 #include "PID_CONTROL.hpp"
 #include "adc_read.hpp"
+#include "cybergear_can_interface.hpp"
+
+extern std::vector<twai_message_t> cybergear_messages;
+extern bool cybergear_transmit_flag;
 
 class C600_DATA;
 class MOTOR;
 class M3508_P19;
 class GM6020;
-
-// cybergear用のtwai_message_t サイズ2
-std::vector<twai_message_t> cybergear_messages(2);
 
 void can_init(uint8_t TX_PIN=8,uint8_t RX_PIN=18, int current_update_hz=200);
 void location_contral_task(void* n);
@@ -366,13 +367,38 @@ class GM6020:public MOTOR{
             angle-=angle_offset;
             reset_location(data->angle);
             float now_angle = get_angle(); // 0~360
-
-            // angleを0~360に変換
+            if (!(low_flag || high_flag) && prior_angle >= 0){
+                if (prior_angle - now_angle > 180){
+                    high_flag = true;
+                    Serial.println("high true");
+                }else if (prior_angle - now_angle < -180){
+                    low_flag = true;
+                    Serial.println("low true");
+                }
+            }
+            prior_angle = now_angle;
+            if (high_flag){
+                if (now_angle > 180){
+                    high_flag = false;
+                    Serial.println("high false");
+                }else{
+                    now_angle += 360;
+                }
+            }
+            if (low_flag){
+                if (now_angle < 180){
+                    low_flag = false;
+                    Serial.println("low false");
+                }else{
+                    now_angle -= 360;
+                }
+            }
             angle=fmodf(angle,360.f); // -360~360
             angle=angle>=0?angle:360.f+angle; // 0~360
-            if (angle <= 20) angle = 20;
-            if (angle >= 340) angle = 340;
+            if (angle <= 10) angle = 10;
+            if (angle >= 350) angle = 350;
             float delta = angle - now_angle; // これで常に0~360の範囲で角度を取るようになるはず
+            // Serial.printf("delta:%f\n\r", delta);
 
             // dir = dir > 0 ? 1 : (dir < 0 ? -1 : 0);
             // angle=fmodf(angle,360.f);
@@ -384,10 +410,6 @@ class GM6020:public MOTOR{
             // if(abs(delta)>180&&dir==0){
             //     delta+=delta>0?-360:360;
             // }
-
-            // float tmp = data->angle*360.f/8192.f + delta;
-            // Serial.print(",");
-            // Serial.println(tmp);
             set_location(data->angle+delta*8192.f/360.f);
         }
         void set_angle_offset(float offset){
@@ -412,8 +434,11 @@ class GM6020:public MOTOR{
         }
     protected:
         float angle_offset = 0;
-
+        float prior_angle = -1;
+        bool low_flag = false;
+        bool high_flag = false;
 };
+
 void location_contral_task(void* n){
     MOTOR* moto = (MOTOR*) n;
     moto->location_pid_contraler.reset();
@@ -541,8 +566,10 @@ void update_current_task(void* p){
             twai_transmit(&tx_msg,portMAX_DELAY);
         }
         // send cybergear can message
+        // Serial.printf("transmit\n\r");
         twai_transmit(&cybergear_messages[0],portMAX_DELAY);
         twai_transmit(&cybergear_messages[1],portMAX_DELAY);
+        cybergear_transmit_flag = true;
         delay(1000/frc);
     }
 }

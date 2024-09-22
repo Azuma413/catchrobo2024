@@ -1,7 +1,11 @@
 #include "DJIMotorCtrlESP.hpp"
+#include "cybergear_can_interface.hpp"
 #include "cybergear_controller.hh"
 #include "udp_read_write.hpp"
-#include "cybergear_can_interface.hpp"
+
+/*
+data: 'assert failed: twai_handle_tx_buffer_frame twai.c:189 (p_twai_obj->tx_msg_count >= 0)'
+*/
 
 // テスト時の設定
 // const char* ssid = "NotFreeWiFi";
@@ -26,10 +30,9 @@ const int m3508_1_id = 5;
 pid_param m3508_speed(    5,      1,      0.01,   1,      10000);
 pid_param m3508_location( 5,    0.0,    10.0,   2000,   3000);
 // pid_param m3508_location( 5,    0.00001,    10.0,   2000,   3000);
-// pid_param gm6020_speed(   10,     0,      0.01,      1,      16384);
 pid_param gm6020_speed(   20,     0,      0.001,      1,      16384);
-pid_param gm6020_location1(0.05,    0.05,    0.02,   5,      350);
-// pid_param gm6020_location2(1.0,    0.1,    0.03,   5,      350);
+pid_param gm6020_location1(0.1,    0.0,    0.02,   5,      350);
+// pid_param gm6020_location1(0.05,    0.05,    0.02,   5,      350);
 pid_param gm6020_location2(0.1,    0.03,    0.02,   5,      350);
 
 M3508_P19 m3508_1(m3508_1_id, m3508_location, m3508_speed);
@@ -43,6 +46,8 @@ CybergearSoftwareConfig config1(cyber_ids[0], CCW, 30, 27, 12, 0, -720*M_PI/180,
 CybergearSoftwareConfig config2(cyber_ids[1], CCW, 30, 27, 12, 240*M_PI/180, 0, CCW, 0);
 std::vector<CybergearSoftwareConfig> sw_configs = {config1, config2};
 std::vector<MotorStatus> motor_status;
+std::vector<twai_message_t> cybergear_messages(2);
+bool cybergear_transmit_flag = false;
 
 bool calib_flag = true; // キャリブレーションフラグ
 
@@ -95,8 +100,9 @@ bool calib_motors(){
         }
         delay(10);
     }
-    delay(500);
+    delay(100);
     controller.send_position_command(cyber_ids[0], 0); //-70*M_PI/45);
+    delay(10);
     // controller.send_position_command(cyber_ids[0], -70*M_PI/45);
     controller.send_position_command(cyber_ids[1], 0); //20*M_PI/90);
     // controller.send_position_command(cyber_ids[1], 20*M_PI/90);
@@ -125,17 +131,15 @@ void setup() {
         controller.set_velocity_control_gain(id, 1.0, 0.002); // 1.0, 0.002)
         controller.set_current_control_param(id, 0.125, 0.0158, 0.1); // 0.125, 0.0158, 0.1
         add_user_can_func(reconstruct_id(master_id, id, CMD_RESPONSE), std::bind(&CybergearCanInterface::on_receive, &interface, std::placeholders::_1));
-        // add_user_can_func(reconstruct_id(master_id, id, CMD_RAM_READ), std::bind(&CybergearCanInterface::on_receive, &interface, std::placeholders::_1));
-        // add_user_can_func(reconstruct_id(master_id, id, CMD_GET_MOTOR_FAIL), std::bind(&CybergearCanInterface::on_receive, &interface, std::placeholders::_1));
     }
     // m3508_1.set_angleはloop内でしか使えない。
     m3508_1.setup();
     gm6020_1.setup();
     gm6020_2.setup();
-    // gm6020_1.set_angle(210); // 挙動が不安定化するくらいなら，やらない方がいい
-    // gm6020_2.set_angle(260);
     controller.enable_motors();
     calib_motors();
+    gm6020_1.set_angle(210); // 挙動が不安定化するくらいなら，やらない方がいい
+    gm6020_2.set_angle(260);
     Serial.println("setup finish");
 }
 
@@ -185,22 +189,10 @@ void set_motor_angle(const std::vector<float>& angle){
     // id3 gm1 id3 腕
     target = -angle[2] + 30;
     if (target < 0) target += 360;
-    current = gm6020_1.get_angle();
-    if (target > current + delta) {
-        target = current + delta;
-    } else if (target < current - delta) {
-        target = current - delta;
-    }
     gm6020_1.set_angle(target); // 210
     // id4 gm2 id4 手首
     target = angle[3] + 80; // 260~180~0~300 tumari 280 ni genten
     if (target < 0) target += 360;
-    current = gm6020_2.get_angle();
-    if (target > current + delta) {
-        target = current + delta;
-    } else if (target < current - delta) {
-        target = current - delta;
-    }
     gm6020_2.set_angle(target);
     // id5 m3508 台座
     target = angle[4];

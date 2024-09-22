@@ -1,3 +1,6 @@
+#ifndef ADC_READ_HPP
+#define ADC_READ_HPP
+
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
 
@@ -48,3 +51,4 @@ float get_adc_deg(){
     return vol2deg(voltage) - offset;
 }
 
+#endif
