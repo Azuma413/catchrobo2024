@@ -511,9 +511,9 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_203.set_current&0xff;
             tx_msg.data[6] = motor_204.set_current >> 8;
             tx_msg.data[7] = motor_204.set_current&0xff;
-            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_err_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
             if (ret != ESP_OK){
-                if (ret == ESP_ERROR_TIMEOUT){
+                if (ret == ESP_ERR_TIMEOUT){
                     Serial.println("CAN TX timeout");
                 }else if (ret == ESP_FAIL){
                     Serial.println("CAN TX failed");
@@ -534,9 +534,9 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_207.set_current&0xff;
             tx_msg.data[6] = motor_208.set_current >> 8;
             tx_msg.data[7] = motor_208.set_current&0xff;
-            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_err_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
             if (ret != ESP_OK){
-                if (ret == ESP_ERROR_TIMEOUT){
+                if (ret == ESP_ERR_TIMEOUT){
                     Serial.println("CAN TX timeout");
                 }else if (ret == ESP_FAIL){
                     Serial.println("CAN TX failed");
@@ -557,9 +557,9 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_207.set_current&0xff;
             tx_msg.data[6] = motor_208.set_current >> 8;
             tx_msg.data[7] = motor_208.set_current&0xff;
-            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_err_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
             if (ret != ESP_OK){
-                if (ret == ESP_ERROR_TIMEOUT){
+                if (ret == ESP_ERR_TIMEOUT){
                     Serial.println("CAN TX timeout");
                 }else if (ret == ESP_FAIL){
                     Serial.println("CAN TX failed");
@@ -580,9 +580,9 @@ void update_current_task(void* p){
             tx_msg.data[5] = motor_20B.set_current&0xff;
             tx_msg.data[6] = 0;
             tx_msg.data[7] = 0;
-            esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+            esp_err_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
             if (ret != ESP_OK){
-                if (ret == ESP_ERROR_TIMEOUT){
+                if (ret == ESP_ERR_TIMEOUT){
                     Serial.println("CAN TX timeout");
                 }else if (ret == ESP_FAIL){
                     Serial.println("CAN TX failed");

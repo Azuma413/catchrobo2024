@@ -41,9 +41,9 @@ public:
     message.rtr = 0;
     message.data_length_code = len;
     memcpy(message.data, data, len);
-    esp_error_t ret = twai_transmit(&tx_msg,portMAX_DELAY);
+    esp_err_t ret = twai_transmit(&message,portMAX_DELAY);
     if (ret != ESP_OK){
-        if (ret == ESP_ERROR_TIMEOUT){
+        if (ret == ESP_ERR_TIMEOUT){
             Serial.println("CAN TX timeout");
         }else if (ret == ESP_FAIL){
             Serial.println("CAN TX failed");
