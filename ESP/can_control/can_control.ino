@@ -132,8 +132,8 @@ void setup() {
     m3508_1.setup();
     gm6020_1.setup();
     gm6020_2.setup();
-    gm6020_1.set_angle(210);
-    gm6020_2.set_angle(260);
+    // gm6020_1.set_angle(210); // 挙動が不安定化するくらいなら，やらない方がいい
+    // gm6020_2.set_angle(260);
     controller.enable_motors();
     calib_motors();
     Serial.println("setup finish");
